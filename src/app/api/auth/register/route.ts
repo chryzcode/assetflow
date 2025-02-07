@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { sendEmail } from "@/lib/mailer";
 import { StatusCodes } from 'http-status-codes';
+import { generateUniqueUserId } from "@/lib/uniqueId";
+
 
 export async function POST(req: Request) {
   try {
@@ -11,13 +14,14 @@ export async function POST(req: Request) {
 
     const userRef = doc(db, "users", email);
     const existingUser = await getDoc(userRef);
+
     if (existingUser.exists()) {
-      return NextResponse.json({ error: "User already exists" }, { status: 400 });
+      return NextResponse.json({ error: "User already exists" }, { status: StatusCodes.CONFLICT });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const userId = Math.floor(10000000 + Math.random() * 90000000).toString();
-    const verificationToken = Math.random().toString(36).substring(2, 15);
+    const userId = await generateUniqueUserId(); // Get unique 8-digit ID
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
     await setDoc(userRef, {
       id: userId,
@@ -32,8 +36,17 @@ export async function POST(req: Request) {
     });
 
     // Send Verification Email
-    const verifyUrl = `${process.env.FRONTEND_URL}/verify?token=${verificationToken}&email=${email}`;
-    await sendEmail(email, "Verify Your Account", `Click here to verify: ${verifyUrl}`);
+    const verifyUrl = `${process.env.FRONTEND_URL}/api/auth/verify?token=${verificationToken}&email=${email}`;
+    const htmlContent = `
+    <p>Hello ${fullName},</p>
+    <p>Thank you for signing up for AssetFlow. Please click the link below to verify your account.</p>
+    <p><a href="${verifyUrl}">Verify Account</a></p>
+    <p>If you did not sign up for AssetFlow, please ignore this email.</p>
+    <p>Best regards,</p>
+    <p>The AssetFlow Team</p>
+    `
+
+    await sendEmail(email, "Verify Your Account", `<p>Click <a href="${verifyUrl}">here</a> to verify your account.</p>`);
 
     return NextResponse.json({ message: "User registered. Check email for verification." }, { status: StatusCodes.CREATED });
   } catch (error: any) {

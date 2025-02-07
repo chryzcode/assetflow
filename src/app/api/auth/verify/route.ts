@@ -3,10 +3,18 @@ import { db } from "@/lib/firebase";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { StatusCodes } from 'http-status-codes';
 
-export async function POST(req: Request) {
+export async function GET(req: Request) {
   try {
-    const { email, token } = await req.json();
-
+      const url = new URL(req.url);
+      const email = url.searchParams.get('email');
+      const token = url.searchParams.get('token');
+  
+      if (!email || !token) {
+        return NextResponse.json(
+          { error: "Email and token are required" }, 
+          { status: StatusCodes.BAD_REQUEST }
+        );
+      }
     const userRef = doc(db, "users", email);
     const userDoc = await getDoc(userRef);
 
