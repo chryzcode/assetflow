@@ -15,8 +15,10 @@ export default async function authenticate(req: NextRequest) {
     const token = authHeader.split(" ")[1];
     const payload = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload;
 
+
     const usersRef = collection(db, "users");
-    const snapshot = await getDocs(query(usersRef, where("id", "==", payload.id)));
+    const snapshot = await getDocs(query(usersRef, where("id", "==", payload.userId)));
+
 
     if (snapshot.empty) {
       return NextResponse.json({ error: "User not found" }, { status: 401 });
@@ -30,7 +32,7 @@ export default async function authenticate(req: NextRequest) {
     }
 
     return user; // Return user data for use in API routes
-  } catch {
+  } catch (error) {
     return NextResponse.json({ error: "Authentication invalid" }, { status: 401 });
   }
 }

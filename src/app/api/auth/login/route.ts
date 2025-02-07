@@ -48,7 +48,7 @@ export async function POST(req: Request) {
         { status: StatusCodes.FORBIDDEN }
       );
     }
-
+    console.log(userData.id);
     const token = jwt.sign({ userId: userData.id, email }, process.env.JWT_SECRET as string, { expiresIn: "7d" });
 
     return NextResponse.json({ message: "Login successful", token }, { status: StatusCodes.OK });
