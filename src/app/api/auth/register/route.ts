@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
-import { doc, setDoc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, setDoc, getDoc} from "firebase/firestore";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sendEmail } from "@/lib/mailer";
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes } from "http-status-codes";
 import { generateUniqueUserId } from "@/lib/uniqueId";
-
 
 export async function POST(req: Request) {
   try {
@@ -44,12 +43,18 @@ export async function POST(req: Request) {
     <p>If you did not sign up for AssetFlow, please ignore this email.</p>
     <p>Best regards,</p>
     <p>The AssetFlow Team</p>
-    `
+    `;
 
-    await sendEmail(email, "Verify Your Account", `<p>Click <a href="${verifyUrl}">here</a> to verify your account.</p>`);
+    await sendEmail(email, "Verify Your Account", htmlContent);
 
-    return NextResponse.json({ message: "User registered. Check email for verification." }, { status: StatusCodes.CREATED });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: StatusCodes.INTERNAL_SERVER_ERROR });
+    return NextResponse.json(
+      { message: "User registered. Check email for verification." },
+      { status: StatusCodes.CREATED }
+    );
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "An unknown error occurred" },
+      { status: StatusCodes.INTERNAL_SERVER_ERROR }
+    );
   }
 }

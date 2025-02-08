@@ -4,7 +4,7 @@ import { doc, getDoc } from "firebase/firestore";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "@/lib/mailer";
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes } from "http-status-codes";
 
 export async function POST(req: Request) {
   try {
@@ -36,17 +36,26 @@ export async function POST(req: Request) {
       `;
       try {
         await sendEmail(email, "Verify Your Account", htmlContent);
-      } catch (emailError) {
-        return NextResponse.json({ error: "Error sending verification email. Please try again later." }, { status: StatusCodes.INTERNAL_SERVER_ERROR });
+      } catch {
+        return NextResponse.json(
+          { error: "Error sending verification email. Please try again later." },
+          { status: StatusCodes.INTERNAL_SERVER_ERROR }
+        );
       }
 
-      return NextResponse.json({ error: "Email not verified. A new verification email has been sent." }, { status: StatusCodes.FORBIDDEN });
+      return NextResponse.json(
+        { error: "Email not verified. A new verification email has been sent." },
+        { status: StatusCodes.FORBIDDEN }
+      );
     }
-
+    console.log(userData.id);
     const token = jwt.sign({ userId: userData.id, email }, process.env.JWT_SECRET as string, { expiresIn: "7d" });
 
     return NextResponse.json({ message: "Login successful", token }, { status: StatusCodes.OK });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: StatusCodes.INTERNAL_SERVER_ERROR });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "An unknown error occurred" },
+      { status: StatusCodes.INTERNAL_SERVER_ERROR }
+    );
   }
 }
