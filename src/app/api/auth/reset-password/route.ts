@@ -5,7 +5,7 @@ import { collection, query, where, getDocs, updateDoc } from "firebase/firestore
 
 export async function POST(req: NextRequest) {
   try {
-    const { token, newPassword } = await req.json();
+    const { token, oldPassword, newPassword } = await req.json();
 
     // Find user by reset token
     const usersRef = collection(db, "users");
@@ -21,6 +21,12 @@ export async function POST(req: NextRequest) {
     // Check token expiration
     if (user.resetExpires < Date.now()) {
       return NextResponse.json({ message: "Token expired" }, { status: 400 });
+    }
+
+    // Check if old password is correct
+    const isPasswordCorrect = await bcrypt.compare(oldPassword, user.password);
+    if (!isPasswordCorrect) {
+      return NextResponse.json({ message: "Incorrect old password" }, { status: 400 });
     }
 
     // Hash new password
