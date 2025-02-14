@@ -6,7 +6,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="relative flex justify-between items-center py-4 px-6 border-b border-gray-800 bg-black">
+    <nav className="relative flex justify-between items-center py-6 px-6 border-b border-gray-800 bg-black">
 
       {/* Logo on the left */}
       <div className="flex items-center space-x-2">
@@ -20,13 +20,13 @@ const Navbar = () => {
 
       {/* Mobile Menu Button - Align to the right */}
       <button
-        className="md:hidden text-white ml-auto"
+        className="md:hidden text-white ml-auto pt-2"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? (
           <span className="material-icons text-white text-3xl">close</span>
         ) : (
-          <span className="material-icons text-white text-3xl pt-5">menu</span>
+          <span className="material-icons text-white text-3xl">menu</span>
         )}
       </button>
 
