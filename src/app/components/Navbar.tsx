@@ -1,51 +1,65 @@
-//import svg
-//where should it be placed?
+"use client";
+
+import { useState } from "react";
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <nav className="flex justify-between items-center py-4 px-6 border-b border-gray-800">
-      <p className="text-xl font-bold text-blue-500">ASSETFLOW</p>
+    <nav className="relative flex justify-between items-center py-4 px-6 border-b border-gray-800 bg-black">
 
-      <div className="space-x-6">
-        {/* add a line under the text when hover */}
-
-        <a
-          href="#"
-          className="text-white hover:border-b-2 border-blue-900"
-        >
-          Home
-        </a>
-        <a
-          href="#"
-          className="text-white  hover:border-b-2 border-blue-900"
-        >
-          Service
-        </a>
-
-        <a
-          href="#"
-          className="text-white  hover:border-b-2 border-blue-900"
-        >
-          Work
-        </a>
-        <a
-          href="#"
-          className="text-white  hover:border-b-2 border-blue-900"
-        >
-          About us
-        </a>
-        <a
-          href="#"
-          className="text-white  hover:border-b-2 border-blue-900"
-        >
-          Blog
-        </a>
+      {/* Logo positioned lower */}
+      <div className="flex items-center space-x-2 absolute left-1/2 transform -translate-x-1/2 top-4">
+        <p className="text-xl font-bold text-blue-500">ASSETFLOW</p>
       </div>
-      <button className="bg-blue-500 px-4 py-2 text-white font-bold">
-        Register
+
+      {/* Desktop Menu - Centered NavLinks */}
+      <div className="hidden md:flex flex-1 justify-center space-x-6">
+        <NavLinks />
+      </div>
+
+      {/* Mobile Menu Button - Align to the right */}
+      <button
+        className="md:hidden text-white ml-auto align-center"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {isOpen ? (
+          <span className="material-icons text-white text-3xl">close</span>
+        ) : (
+          <span className="material-icons text-white text-3xl pt-5">menu</span>
+        )}
       </button>
+
+      {/* Register Button (hidden on mobile) */}
+      <div className="hidden md:block ml-auto">
+        <button className="bg-blue-500 px-4 py-2 text-white font-bold">
+          Register
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="absolute top-16 left-0 w-full bg-black bg-opacity-90 py-6 flex flex-col items-center space-y-4 md:hidden z-50">
+          <NavLinks />
+        </div>
+      )}
     </nav>
   );
 };
+
+// Separate component for menu links to avoid repetition
+const NavLinks = () => (
+  <>
+    {["Home", "Service", "Work", "About us", "Blog"].map((item) => (
+      <a
+        key={item}
+        href="#"
+        className="text-white hover:border-b-2 border-blue-900"
+      >
+        {item}
+      </a>
+    ))}
+  </>
+);
 
 export default Navbar;
