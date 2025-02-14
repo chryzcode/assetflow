@@ -8,7 +8,7 @@ export default function Home() {
       <header className="text-center py-20">
         <div className="relative w-full h-full flex items-center justify-center mx-auto container">
           <h1
-            className="text-6xl font-bold uppercase tracking-wide text-transparent bg-clip-text"
+            className="text-5xl font-bold uppercase tracking-wide text-transparent bg-clip-text md:text-6xl"
             style={{
               backgroundImage: "url('/assets/text-bg.jpg')",
               backgroundSize: "cover",
