@@ -31,7 +31,10 @@ export async function GET(req: Request) {
     await updateDoc(userRef, { verified: true, verificationToken: null });
 
     return NextResponse.json({ message: "Account verified successfully" }, { status: StatusCodes.OK });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: StatusCodes.INTERNAL_SERVER_ERROR });
+  } catch (error: unknown ) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: StatusCodes.INTERNAL_SERVER_ERROR });
+    }
+    return NextResponse.json({ error: "An unknown error occurred" }, { status: StatusCodes.INTERNAL_SERVER_ERROR });
   }
 }

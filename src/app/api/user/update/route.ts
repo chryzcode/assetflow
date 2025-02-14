@@ -10,7 +10,7 @@ export async function PUT(req: NextRequest) {
   if (user instanceof NextResponse) return user; // Stop if authentication fails
 
 
-  const userId = user.id; // This is the ID from the user object
+  const userId = (user as any).id; // This is the ID from the user object
   const { ...userData } = await req.json();
 
 
@@ -50,7 +50,10 @@ export async function PUT(req: NextRequest) {
     //return the updated user complete object
     const updatedUser = await getDoc(userRef);
     return NextResponse.json({ message: "User updated successfully", user: updatedUser.data() }, { status: 200 });
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
     return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
   }
 }
