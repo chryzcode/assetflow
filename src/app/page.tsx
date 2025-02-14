@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Navbar from "./components/Navbar";
 import Services from "./components/Services";
 export default function Home() {
@@ -31,7 +30,7 @@ export default function Home() {
           </p>
 
           <button className="mt-6 md:mt-0 bg-blue-500 px-8 py-4 text-white font-bold flex items-center">
-            Let's Talk{" "}
+          <p>{`Let's Talk`}</p>
             <span className="material-icons animate-arrow">arrow_forward</span>
           </button>
         </div>
