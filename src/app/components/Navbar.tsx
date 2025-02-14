@@ -8,8 +8,8 @@ const Navbar = () => {
   return (
     <nav className="relative flex justify-between items-center py-4 px-6 border-b border-gray-800 bg-black">
 
-      {/* Logo positioned lower */}
-      <div className="flex items-center space-x-2 absolute left-1/2 transform -translate-x-1/2 top-4">
+      {/* Logo on the left */}
+      <div className="flex items-center space-x-2">
         <p className="text-xl font-bold text-blue-500">ASSETFLOW</p>
       </div>
 
@@ -20,7 +20,7 @@ const Navbar = () => {
 
       {/* Mobile Menu Button - Align to the right */}
       <button
-        className="md:hidden text-white ml-auto align-center"
+        className="md:hidden text-white ml-auto"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? (
