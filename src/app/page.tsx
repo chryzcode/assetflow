@@ -1,10 +1,9 @@
-import Navbar from "./components/Navbar";
 import Services from "./components/Services";
+import Link from "next/link";
+
 export default function Home() {
   return (
     <>
-      <Navbar />
-
       <header className="text-center py-20">
         <div className="relative w-full h-full flex items-center justify-center mx-auto container">
           <h1
@@ -29,10 +28,13 @@ export default function Home() {
             businesses in the digital age.
           </p>
 
-          <button className="mt-6 md:mt-0 bg-blue-500 px-8 py-4 text-white font-bold flex items-center">
-          <p>{`Let's Talk`}</p>
+          <Link
+            href="/auth/register"
+            className="mt-6 md:mt-0 bg-blue-500 px-8 py-4 text-white font-bold flex items-center"
+          >
+            <p>Get Started</p>
             <span className="material-icons animate-arrow">arrow_forward</span>
-          </button>
+          </Link>
         </div>
 
         <div className="flex justify-center items-center flex-col mt-24">
@@ -48,7 +50,9 @@ export default function Home() {
       <Services />
 
       <div className="flex flex-col items-center justify-center mx-auto text-center my-20 container">
-        <h1 className="text-4xl font-bold">Start Managing Your Assets Today</h1>
+        <h1 className="text-4xl font-bold text-blue-300">
+          Start Managing Your Assets Today
+        </h1>
         <p className="text-gray-300 text-xl py-5">
           Ready to take control of your assets with security and transparency?
           Get started with Asset Flow today and revolutionize how you manage,
@@ -56,10 +60,13 @@ export default function Home() {
         </p>
 
         <div className="my-10">
-          <button className="mt-6 md:mt-0 bg-blue-500 px-8 py-4 text-white font-bold flex items-center ">
+            <Link
+              href="/auth/register"
+              className="mt-6 md:mt-0 bg-blue-500 px-8 py-4 text-white font-bold flex items-center"
+          >
             Get Started
             <span className="material-icons animate-arrow">arrow_forward</span>
-          </button>
+          </Link>
         </div>
       </div>
     </>
