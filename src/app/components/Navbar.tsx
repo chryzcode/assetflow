@@ -1,38 +1,52 @@
 "use client";
 
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  return (
-    <nav className="relative flex justify-between items-center py-6 px-6 border-b border-gray-800 bg-black">
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && !(event.target as HTMLElement).closest("nav")) {
+        setIsOpen(false);
+      }
+    };
 
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [isOpen]);
+
+  const router = useRouter();
+
+  return (
+    <nav className="relative flex justify-between items-center py-6 px-6 border-b border-blue-500">
       {/* Logo on the left */}
       <div className="flex items-center space-x-2">
-        <p className="text-xl font-bold text-blue-500">ASSETFLOW</p>
+        <Link href="/">
+          <p className="text-xl font-bold text-blue-500">ASSETFLOW</p>
+        </Link>
       </div>
 
-      {/* Desktop Menu - Centered NavLinks */}
+      {/* Desktop Menu */}
       <div className="hidden md:flex flex-1 justify-center space-x-6">
-        <NavLinks />
+        <NavLinks onClick={() => setIsOpen(false)} />
       </div>
 
-      {/* Mobile Menu Button - Align to the right */}
+      {/* Mobile Menu Button */}
       <button
         className="md:hidden text-white ml-auto pt-2"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? (
-          <span className="material-icons text-white text-3xl">close</span>
-        ) : (
-          <span className="material-icons text-white text-3xl">menu</span>
-        )}
+        <span className="material-icons text-white text-3xl">
+          {isOpen ? "close" : "menu"}
+        </span>
       </button>
 
       {/* Register Button (hidden on mobile) */}
       <div className="hidden md:block ml-auto">
-        <button className="bg-blue-500 px-4 py-2 text-white font-bold">
+        <button className="bg-blue-500 px-4 py-2 text-white font-bold" onClick={() => router.push("/auth/register")}>
           Register
         </button>
       </div>
@@ -40,21 +54,22 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="absolute top-16 left-0 w-full bg-black bg-opacity-90 py-6 flex flex-col items-center space-y-4 md:hidden z-50">
-          <NavLinks />
+          <NavLinks onClick={() => setIsOpen(false)} />
         </div>
       )}
     </nav>
   );
 };
 
-// Separate component for menu links to avoid repetition
-const NavLinks = () => (
+// NavLinks Component (Closes menu on click)
+const NavLinks = ({ onClick }: { onClick: () => void }) => (
   <>
     {["Home", "Service", "Work", "About us", "Blog"].map((item) => (
       <a
         key={item}
         href="#"
         className="text-white hover:border-b-2 border-blue-900"
+        onClick={onClick}
       >
         {item}
       </a>

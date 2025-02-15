@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+import Navbar from "./components/Navbar";
 
 const poppins = Poppins({
   weight: ["400"],
@@ -25,7 +28,9 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
       </head>
       <body className={`${poppins.variable} antialiased`}>
+        <Navbar />
         {children}
+        <ToastContainer   />
       </body>
     </html>
   );
