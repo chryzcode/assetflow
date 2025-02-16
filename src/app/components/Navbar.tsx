@@ -53,7 +53,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="absolute top-16 left-0 w-full bg-black bg-opacity-90 py-6 flex flex-col items-center space-y-4 md:hidden z-50">
+        <div className="absolute top-16 left-0 w-full bg-background mt-6 bg-opacity-10 py-6 flex flex-col items-center space-y-4 md:hidden z-50">
           <NavLinks onClick={() => setIsOpen(false)} />
         </div>
       )}
