@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import Link from "next/link";
+import Router from "next/router";
+
+
 const Register = () => {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -11,6 +14,7 @@ const Register = () => {
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
+  const router = Router;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -50,6 +54,7 @@ const Register = () => {
         password: "",
         confirmPassword: "",
       });
+      router.push("/auth/login");
     } catch (error: unknown) {
       toast.error(
         error instanceof Error ? error.message : "Registration failed"
