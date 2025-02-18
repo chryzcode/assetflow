@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     console.log(userData.id);
     const token = jwt.sign({ userId: userData.id, email }, process.env.JWT_SECRET as string, { expiresIn: "7d" });
 
-    return NextResponse.json({ message: "Login successful", token }, { status: StatusCodes.OK });
+    return NextResponse.json({ message: "Login successful", token, user: userData}, { status: StatusCodes.OK });
   } catch (error: unknown) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "An unknown error occurred" },
