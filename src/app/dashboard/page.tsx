@@ -67,8 +67,6 @@ const DashboardPage = () => {
 
       {/* MetaMask Wallet Component */}
       <Metamask userId={user?.id} />
-      {user && <p>Connected Wallet: {user.fullName}</p>}
-
       {/* Conditional Rendering for Wallet */}
       {user?.walletAddress ? <p>Wallet: {user.walletAddress}</p> : <p>No wallet connected</p>}
     </div>

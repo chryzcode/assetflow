@@ -19,19 +19,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en">
       <head>
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/icon?family=Material+Icons"
-        />
+        {/* Add Google Material Icons stylesheet */}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
       </head>
       <body className={`${poppins.variable} antialiased`}>
         <AuthProvider>
-          <Navbar />
-          {children}
+        <Navbar />
+        {children}
           <ToastContainer />
         </AuthProvider>
       </body>
