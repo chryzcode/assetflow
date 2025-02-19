@@ -1,12 +1,15 @@
 import { ethers } from "ethers";
-import { doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+
 
 declare global {
   interface Window {
     ethereum?: any;
   }
 }
+
+
 
 export const connectMetaMask = async (userId: string) => {
   if (!window.ethereum) throw new Error("MetaMask is not installed");
@@ -16,8 +19,18 @@ export const connectMetaMask = async (userId: string) => {
   const signer = await provider.getSigner();
   const walletAddress = await signer.getAddress();
 
-  // Update user in Firestore with wallet address
-  await updateDoc(doc(db, "users", userId), { walletAddress });
+  // Query Firestore to find the user by their `id` field
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("id", "==", userId));
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    throw new Error("User not found");
+  }
+
+  // Get the first matching document and update the wallet address
+  const userDoc = snapshot.docs[0].ref;
+  await updateDoc(userDoc, { walletAddress });
 
   return walletAddress;
 };
