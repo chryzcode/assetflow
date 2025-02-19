@@ -47,10 +47,9 @@ const Login = () => {
         type: "LOGIN",
         payload: { token: data.token, user: { id: data.user.id } },
       });
-
+      router.push("/dashboard");
       toast.success("Login successful");
       setFormData({ email: "", password: "" });
-      router.push("/dashboard");
     } catch (error: unknown) {
       dispatch({
         type: "ERROR",
@@ -91,8 +90,7 @@ const Login = () => {
         <button
           type="submit"
           className="w-full bg-blue-500 hover:bg-blue-600 transition text-white py-3 rounded font-bold flex items-center justify-center my-6 disabled:opacity-50"
-          disabled={loading}
-        >
+          disabled={loading}>
           {loading ? "Logging In..." : "Login"}
         </button>
         <p className="text-white text-sm mt-4 text-center">
