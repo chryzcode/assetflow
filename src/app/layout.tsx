@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 import Navbar from "./components/Navbar";
+import { AuthProvider } from "../app/context/AuthContext";
 
 const poppins = Poppins({
   weight: ["400"],
@@ -18,19 +19,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <head>
-        {/* Add Google Material Icons stylesheet */}
-        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/icon?family=Material+Icons"
+        />
       </head>
       <body className={`${poppins.variable} antialiased`}>
-        <Navbar />
-        {children}
-        <ToastContainer   />
+        <AuthProvider>
+          <Navbar />
+          {children}
+          <ToastContainer />
+        </AuthProvider>
       </body>
     </html>
   );
