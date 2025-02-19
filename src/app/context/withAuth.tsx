@@ -1,13 +1,16 @@
 "use client";
 import React, { useEffect } from "react";
-import { useRouter } from "next/navigation"; // ✅ Use "next/navigation" instead of "next/router"
-import { useAuth } from "./AuthContext"; 
+import { useRouter } from "next/navigation";
+import { useAuth } from "./AuthContext";
 
-const withAuth = (WrappedComponent: React.FC) => {
-  return (props: any) => {
-    const { state } = useAuth();
-    const { isAuthenticated } = state;
+/**
+ * Authentication wrapper HOC that redirects unauthenticated users to login
+ */
+const withAuth = <P extends object>(WrappedComponent: React.ComponentType<P>) => {
+  const AuthWrapper: React.FC<P> = (props) => {
     const router = useRouter();
+    const { state } = useAuth(); // Get authentication state
+    const { isAuthenticated } = state; // Access isAuthenticated from state
 
     useEffect(() => {
       if (!isAuthenticated) {
@@ -16,11 +19,13 @@ const withAuth = (WrappedComponent: React.FC) => {
     }, [isAuthenticated, router]);
 
     if (!isAuthenticated) {
-      return null; // Prevents flicker before redirection
+      return null; // Prevent rendering before redirect
     }
 
     return <WrappedComponent {...props} />;
   };
+
+  return AuthWrapper;
 };
 
 export default withAuth;
