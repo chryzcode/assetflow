@@ -13,7 +13,7 @@ console.log("Decoded token:", decoded);
 
 
   try {
-    // jwt.verify(token, secret);
+     jwt.verify(token, secret);//
     return true;
   } catch (error) {
     console.error("Invalid token:", error);

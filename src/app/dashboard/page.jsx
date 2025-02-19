@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import Metamask from "@/app/components/Metamask";
+import withAuth from "../context/withAuth";
 
 const DashboardPage = () => {
   const { state } = useAuth();
@@ -27,4 +28,4 @@ const DashboardPage = () => {
   );
 };
 
-export default DashboardPage;
+export default withAuth(DashboardPage);
