@@ -92,7 +92,7 @@ const Navbar = () => {
 
         {!isAuthenticated && (
           <button
-            className="bg-blue-500 px-4 py-2 text-white font-bold"
+            className="hidden md:block bg-blue-500 px-4 py-2 text-white font-bold"
             onClick={() => router.push("/auth/login")}
           >
             Login
@@ -147,9 +147,7 @@ const NavLinks = ({ onClick }: { onClick: () => void }) => (
   <>
     {[
       { name: "Dashboard", route: "/dashboard" },
-      { name: "List Asset", route: "/assets/list-asset" },
-    
-     
+      { name: "List Asset", route: "/assets/list-asset" }, 
 
     ].map((item) => (
       <a
@@ -163,6 +161,7 @@ const NavLinks = ({ onClick }: { onClick: () => void }) => (
     ))}
   </>
 );
+
 
 // Dropdown Menu Component
 const DropdownMenu = ({ handleLogout }: { handleLogout: () => void }) => (
