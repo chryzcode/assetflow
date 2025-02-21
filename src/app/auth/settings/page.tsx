@@ -2,7 +2,7 @@
 
 import { toast } from "react-toastify";
 import withAuth from "@/app/context/withAuth";
-import {getAuthUser} from "@/lib/useAuthUser";
+import {useGetAuthUser} from "@/lib/useGetAuthUser";
 import { useState, useEffect } from "react";
 
 interface User {
@@ -13,7 +13,7 @@ interface User {
 }
 
 const EditProfile = () => {
-  const user = getAuthUser();
+  const user = useGetAuthUser();
   const [formData, setFormData] = useState<User>({
     fullName: "",
     email: "",

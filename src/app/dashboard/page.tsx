@@ -2,10 +2,10 @@
 
 import Metamask from "@/app/components/Metamask";
 import withAuth from "../context/withAuth";
-import {getAuthUser} from "@/lib/useAuthUser";
+import {useGetAuthUser} from "@/lib/useGetAuthUser";
 
 const DashboardPage = () => {
-  const user = getAuthUser();
+  const user = useGetAuthUser();
 
   if (!user) return <p>Loading...</p>; // Prevent rendering before data loads
 
