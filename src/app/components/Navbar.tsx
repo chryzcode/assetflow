@@ -92,7 +92,7 @@ const Navbar = () => {
 
         {!isAuthenticated && (
           <button
-            className="bg-blue-500 px-4 py-2 text-white font-bold"
+            className="hidden md:block bg-blue-500 px-4 py-2 text-white font-bold"
             onClick={() => router.push("/auth/login")}
           >
             Login
@@ -145,18 +145,23 @@ const Navbar = () => {
 // NavLinks Component
 const NavLinks = ({ onClick }: { onClick: () => void }) => (
   <>
-    {["Home", "Service", "Work", "About us", "Blog"].map((item) => (
+    {[
+      { name: "Dashboard", route: "/dashboard" },
+      { name: "List Asset", route: "/assets/list-asset" }, 
+
+    ].map((item) => (
       <a
-        key={item}
-        href="#"
+        key={item.name}
+        href={item.route}
         className="text-white hover:border-b-2 border-blue-900"
         onClick={onClick}
       >
-        {item}
+        {item.name}
       </a>
     ))}
   </>
 );
+
 
 // Dropdown Menu Component
 const DropdownMenu = ({ handleLogout }: { handleLogout: () => void }) => (
@@ -164,18 +169,10 @@ const DropdownMenu = ({ handleLogout }: { handleLogout: () => void }) => (
     <button
       className="block w-full text-left px-4 py-2 hover:border-b hover:border-blue-500 hover:cursor-pointer"
       onClick={() => {
-        window.location.href = "/profile";
+        window.location.href = "/auth/settings";
       }}
     >
       Update Profile
-    </button>
-    <button
-      className="block w-full text-left px-4 py-2 hover:border-b hover:border-blue-500 hover:cursor-pointer"
-      onClick={() => {
-        window.location.href = "/settings";
-      }}
-    >
-      Settings
     </button>
     <button
       className="block w-full text-left px-4 py-2 text-red-500 hover:border-b hover:border-blue-500 hover:text-white hover:cursor-pointer"
