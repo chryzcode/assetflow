@@ -2,7 +2,7 @@
 
 import Metamask from "@/app/components/Metamask";
 import withAuth from "../context/withAuth";
-import getAuthUser from "@/lib/getAuthUser";
+import {getAuthUser} from "@/lib/getAuthUser";
 
 const DashboardPage = () => {
   const user = getAuthUser();

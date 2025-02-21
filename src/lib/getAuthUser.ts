@@ -3,7 +3,7 @@ import { useAuth } from "../app/context/AuthContext";
 import {jwtDecode} from "jwt-decode";
 
 
-const getAuthUser = () => {
+export const getAuthUser = () => {
     const { state } = useAuth();
     const { user } = state;
     const [authUser, setAuthUser] = useState<any | null>(null);
@@ -49,4 +49,4 @@ const getAuthUser = () => {
     return authUser;
 };
 
-export default getAuthUser;
+

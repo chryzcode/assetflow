@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import withAuth from "../../context/withAuth";
 import AssetListingForm from "../../components/AssetListingForm";
-import getAuthUser from "@/lib/getAuthUser";
+import {getAuthUser} from "@/lib/getAuthUser";
 
 
 const ListAssetPage = () => {

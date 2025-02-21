@@ -2,7 +2,7 @@
 
 import { toast } from "react-toastify";
 import withAuth from "@/app/context/withAuth";
-import getAuthUser from "@/lib/getAuthUser";
+import {getAuthUser} from "@/lib/getAuthUser";
 import { useState, useEffect } from "react";
 
 interface User {
