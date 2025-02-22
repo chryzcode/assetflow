@@ -9,8 +9,6 @@ export const validateToken = async (token: string): Promise<boolean> => {
   }
   console.log("Token:", token);
   const decoded = jwt.decode(token);
-console.log("Decoded token:", decoded);
-
 
   try {
      jwt.verify(token, secret);//
