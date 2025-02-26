@@ -1,37 +1,68 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
-// import AssetMarketplace from "../artifacts/contracts/AssetMarketplace.sol/AssetMarketplace.json";
+import AssetMarketplace from "../../smartContract/artifacts/contracts/AssetMarketplace.sol/AssetMarketplace.json";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
-const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE"; // Replace after deployment
+const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ""; 
 
-const AssetListingForm = () => {
+interface AssetListingFormProps {
+  user?: { walletAddress?: string }; // Ensure the user object contains walletAddress
+}
+
+const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     assetName: "",
     assetDescription: "",
     assetPrice: "",
-    assetFile: null,
+    assetFile: null as File | null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Redirect user to dashboard if they don't have a wallet connected
+  if (!user?.walletAddress) {
+    toast.error("Please connect your wallet to list an asset", { autoClose: 5000 });
+    router.push("/dashboard"); // Redirect to dashboard for wallet setup
+    return null;
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, files } = e.target as HTMLInputElement;
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
       [name]: files ? files[0] : value,
     }));
   };
 
-  const connectWallet = async () => {
-    if (window.ethereum) {
-      await window.ethereum.request({ method: "eth_requestAccounts" });
-    } else {
-      alert("MetaMask not detected!");
-    }
-  };
-
   const uploadToIPFS = async (file: File) => {
-    // Placeholder function (you can integrate Pinata or Web3.Storage here)
-    return "ipfs://fakehash";
+    const API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY;
+    const API_SECRET = process.env.NEXT_PUBLIC_PINATA_API_SECRET;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const metadata = JSON.stringify({ name: file.name });
+    formData.append("pinataMetadata", metadata);
+
+    const options = JSON.stringify({ cidVersion: 0 });
+    formData.append("pinataOptions", options);
+
+    try {
+      const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          pinata_api_key: API_KEY!,
+          pinata_secret_api_key: API_SECRET!,
+        },
+      });
+
+      return `ipfs://${res.data.IpfsHash}`;
+    } catch (error) {
+      console.error("Error uploading to IPFS:", error);
+      throw new Error("Failed to upload file");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,15 +70,22 @@ const AssetListingForm = () => {
     setIsSubmitting(true);
 
     try {
-      const assetURI = await uploadToIPFS(formData.assetFile!);
+      if (!formData.assetFile) throw new Error("No file selected!");
 
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
+      const assetURI = await uploadToIPFS(formData.assetFile);
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
       const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
 
-      const priceInWei = ethers.utils.parseEther(formData.assetPrice);
+      const priceInWei = ethers.parseEther(formData.assetPrice);
 
-      const transaction = await contract.listAsset(formData.assetName, formData.assetDescription, assetURI, priceInWei);
+      const transaction = await contract.listAsset(
+        formData.assetName,
+        formData.assetDescription,
+        assetURI,
+        priceInWei
+      );
       await transaction.wait();
       alert("Asset listed successfully!");
     } catch (error) {
@@ -61,12 +99,6 @@ const AssetListingForm = () => {
     <div className="flex justify-center items-center min-h-screen bg-gray-900">
       <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto p-6 bg-gray-800 rounded-lg">
         <h2 className="text-white text-2xl font-bold mb-6 text-center">List Your Asset</h2>
-        <button
-          type="button"
-          onClick={connectWallet}
-          className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded mb-4">
-          Connect Wallet
-        </button>
         <input
           type="text"
           name="assetName"

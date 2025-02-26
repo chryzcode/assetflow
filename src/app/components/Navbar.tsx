@@ -148,6 +148,7 @@ const NavLinks = ({ onClick }: { onClick: () => void }) => (
     {[
       { name: "Dashboard", route: "/dashboard" },
       { name: "List Asset", route: "/assets/list-asset" }, 
+      { name: "My Assets", route: "/assets/my-assets" },
 
     ].map((item) => (
       <a
