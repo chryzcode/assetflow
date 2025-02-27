@@ -33,17 +33,17 @@ const ListAssetPage = () => {
 
     useEffect(() => {
         if (userId) {
-            fetchUserAssets(userId);
+            fetchUserAssets(userId); 
         }
     }, [userId]);
 
     const fetchUserAssets = async (userId: string) => {
         try {
-            const provider = new ethers.JsonRpcProvider("https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID"); // Use actual provider
+            const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/434aaefc9eaa4652a251b908fed5cb30"); 
             const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, provider);
 
             const userAssets = await contract.getUserAssets(userId);
-
+            
             // Map the response to match the Asset type
             const formattedAssets = userAssets.map((asset: any, index: number) => ({
                 id: index + 1, // Contract may not return an id, so we generate one
