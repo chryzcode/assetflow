@@ -39,7 +39,7 @@ const ListAssetPage = () => {
 
     const fetchUserAssets = async (userId: string) => {
         try {
-            const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/434aaefc9eaa4652a251b908fed5cb30"); 
+            const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${process.env.INFURA_PROJECT_ID}`);
             const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, provider);
 
             const userAssets = await contract.getUserAssets(userId);
