@@ -1,70 +1,145 @@
 import React, { useState } from "react";
+import { ethers } from "ethers";
+import AssetMarketplace from "../../smartContract/artifacts/contracts/AssetMarketplace.sol/AssetMarketplace.json";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
-const AssetListingForm = () => {
+const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ""; 
+
+interface AssetListingFormProps {
+  user?: { walletAddress?: string }; // Ensure the user object contains walletAddress
+}
+
+const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     assetName: "",
     assetDescription: "",
     assetPrice: "",
+    assetFile: null as File | null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Redirect user to dashboard if they don't have a wallet connected
+  if (!user?.walletAddress) {
+    toast.error("Please connect your wallet to list an asset", { autoClose: 5000 });
+    router.push("/dashboard"); // Redirect to dashboard for wallet setup
+    return null;
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const { name, value, files } = e.target as HTMLInputElement;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: files ? files[0] : value,
     }));
+  };
+
+  const uploadToIPFS = async (file: File) => {
+    const API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY;
+    const API_SECRET = process.env.NEXT_PUBLIC_PINATA_API_SECRET;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const metadata = JSON.stringify({ name: file.name });
+    formData.append("pinataMetadata", metadata);
+
+    const options = JSON.stringify({ cidVersion: 0 });
+    formData.append("pinataOptions", options);
+
+    try {
+      const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          pinata_api_key: API_KEY!,
+          pinata_secret_api_key: API_SECRET!,
+        },
+      });
+
+      return `ipfs://${res.data.IpfsHash}`;
+    } catch (error) {
+      console.error("Error uploading to IPFS:", error);
+      throw new Error("Failed to upload file");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Add your form submission logic here
+
+    try {
+      if (!formData.assetFile) throw new Error("No file selected!");
+
+      const assetURI = await uploadToIPFS(formData.assetFile);
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
+
+      const priceInWei = ethers.parseEther(formData.assetPrice);
+
+      const transaction = await contract.listAsset(
+        formData.assetName,
+        formData.assetDescription,
+        assetURI,
+        priceInWei
+      );
+      await transaction.wait();
+      alert("Asset listed successfully!");
+    } catch (error) {
+      console.error("Error listing asset:", error);
+    }
+
     setIsSubmitting(false);
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-    <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto p-6 bg-gray-900 rounded-lg">
-      <h2 className="text-white text-2xl font-bold mb-6 text-center">List Asset</h2>
-      <input
-        type="text"
-        name="assetName"
-        placeholder="Asset Name"
-        value={formData.assetName}
-        onChange={handleChange}
-        className="w-full p-3 mb-4 bg-gray-800 text-white rounded focus:ring-2 focus:ring-blue-500"
-        aria-label="Asset Name"
-        required
-      />
-      <textarea
-        name="assetDescription"
-        placeholder="Asset Description"
-        value={formData.assetDescription}
-        onChange={handleChange}
-        className="w-full p-3 mb-4 bg-gray-800 text-white rounded focus:ring-2 focus:ring-blue-500"
-        aria-label="Asset Description"
-        required
-      />
-      <input
-        type="number"
-        name="assetPrice"
-        placeholder="Asset Price"
-        value={formData.assetPrice}
-        onChange={handleChange}
-        className="w-full p-3 mb-4 bg-gray-800 text-white rounded focus:ring-2 focus:ring-blue-500"
-        aria-label="Asset Price"
-        required
-      />
-      <button
-        type="submit"
-        className="w-full bg-blue-500 hover:bg-blue-600 transition text-white py-3 rounded font-bold flex items-center justify-center my-6 disabled:opacity-50"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? "Listing..." : "List"}
-      </button>
-    </form>
-  </div>
+    <div className="flex justify-center items-center min-h-screen bg-gray-900">
+      <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto p-6 bg-gray-800 rounded-lg">
+        <h2 className="text-white text-2xl font-bold mb-6 text-center">List Your Asset</h2>
+        <input
+          type="text"
+          name="assetName"
+          placeholder="Asset Name"
+          value={formData.assetName}
+          onChange={handleChange}
+          className="w-full p-3 mb-4 bg-gray-700 text-white rounded"
+          required
+        />
+        <textarea
+          name="assetDescription"
+          placeholder="Asset Description"
+          value={formData.assetDescription}
+          onChange={handleChange}
+          className="w-full p-3 mb-4 bg-gray-700 text-white rounded"
+          required
+        />
+        <input
+          type="number"
+          name="assetPrice"
+          placeholder="Asset Price in ETH"
+          value={formData.assetPrice}
+          onChange={handleChange}
+          className="w-full p-3 mb-4 bg-gray-700 text-white rounded"
+          required
+        />
+        <input
+          type="file"
+          name="assetFile"
+          onChange={handleChange}
+          className="w-full p-3 mb-4 bg-gray-700 text-white rounded"
+          required
+        />
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded">
+          {isSubmitting ? "Listing..." : "List Asset"}
+        </button>
+      </form>
+    </div>
   );
 };
 

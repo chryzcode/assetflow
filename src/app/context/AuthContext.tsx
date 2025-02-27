@@ -1,4 +1,5 @@
 "use client";
+
 import React, { createContext, useReducer, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
@@ -6,12 +7,12 @@ import { validateToken } from "@/lib/auth";
 
 type AuthState = {
   isAuthenticated: boolean;
-  user: { id: string } | null;
+  user: any | null;
   token: string | null;
 };
 
 type AuthAction =
-  | { type: "LOGIN"; payload: { token: string; user: { id: string } } }
+  | { type: "LOGIN"; payload: { token: string; user: any } }
   | { type: "LOGOUT" }
   | { type: "ERROR"; payload: string };
 
@@ -55,38 +56,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
+      const token = localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
 
-        if (!token || !storedUser) {
-          dispatch({ type: "LOGOUT" }); // Explicitly update state
-          setIsInitialized(true);
-          return;
-        }
-
-        // Validate token before setting authenticated state
+      if (token && storedUser) {
         const isValid = await validateToken(token);
-        if (!isValid) {
+        if (isValid) {
+          dispatch({
+            type: "LOGIN",
+            payload: {
+              token,
+              user: JSON.parse(storedUser),
+            },
+          });
+        } else {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           dispatch({ type: "LOGOUT" });
-          setIsInitialized(true);
-          return;
         }
-
-        dispatch({
-          type: "LOGIN",
-          payload: { token, user: JSON.parse(storedUser) },
-        });
-      } catch (error) {
-        dispatch({
-          type: "ERROR",
-          payload: error instanceof Error ? error.message : "Authentication failed",
-        });
-      } finally {
-        setIsInitialized(true);
       }
+      setIsInitialized(true);
     };
 
     initializeAuth();

@@ -1,32 +1,31 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../app/context/AuthContext";
 import { jwtDecode } from "jwt-decode";
-import { useRouter } from "next/navigation"; // For redirection
+import { useRouter } from "next/navigation";
 
 export const useGetAuthUser = () => {
-  const { state } = useAuth();
-  const { user } = state;
+  const { state, dispatch } = useAuth();
+  const { user, token } = state;
   const [authUser, setAuthUser] = useState<any | null>(user || null);
   const router = useRouter();
 
+
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem("token");
       if (!token) return;
 
       try {
-        // Decode the token to extract userId
         const decoded: any = jwtDecode(token);
         const userId = decoded?.userId;
 
         if (!userId) {
           console.error("Invalid token: Missing userId");
           localStorage.removeItem("token");
-          router.push("/auth/sign-in"); // Redirect if token is invalid
+          router.push("/auth/login");
           return;
         }
 
-        // Fetch user by userId
+        // Fetch user from API
         const response = await fetch(`/api/user/detail?userId=${userId}`, {
           method: "GET",
           headers: {
@@ -34,28 +33,33 @@ export const useGetAuthUser = () => {
             "Content-Type": "application/json",
           },
         });
-
         if (response.ok) {
           const userData = await response.json();
           setAuthUser(userData.user);
+
+          // Store user in localStorage
+          localStorage.setItem("user", JSON.stringify(userData.user));
+          dispatch({ type: "LOGIN", payload: { token, user: userData.user } });
         } else {
           console.error("Failed to fetch user data");
           localStorage.removeItem("token");
           localStorage.removeItem("user");
+          dispatch({ type: "LOGOUT" });
           router.push("/auth/login");
         }
       } catch (error) {
         console.error("Error decoding token or fetching user data", error);
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        dispatch({ type: "LOGOUT" });
         router.push("/auth/login");
       }
     };
 
-    if (!user) {
+ 
       fetchUser();
-    }
-  }, [user, router]);
+   
+  }, [token, dispatch, router]);
 
   return authUser;
 };
