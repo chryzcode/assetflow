@@ -5,11 +5,14 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
-const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ""; 
+const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "";
 
 interface AssetListingFormProps {
-  user?: { walletAddress?: string }; // Ensure the user object contains walletAddress
+  user?: { walletAddress?: string; id?: number }; // Ensure the user object contains walletAddress
 }
+
+const API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY as string;
+const API_SECRET = process.env.NEXT_PUBLIC_PINATA_API_SECRET as string;
 
 const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
   const router = useRouter();
@@ -30,16 +33,13 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, files } = e.target as HTMLInputElement;
-    setFormData((prevData) => ({
+    setFormData(prevData => ({
       ...prevData,
       [name]: files ? files[0] : value,
     }));
   };
 
   const uploadToIPFS = async (file: File) => {
-    const API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY;
-    const API_SECRET = process.env.NEXT_PUBLIC_PINATA_API_SECRET;
-
     const formData = new FormData();
     formData.append("file", file);
 
@@ -53,15 +53,15 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
       const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          pinata_api_key: API_KEY!,
-          pinata_secret_api_key: API_SECRET!,
+          pinata_api_key: API_KEY,
+          pinata_secret_api_key: API_SECRET,
         },
       });
 
       return `ipfs://${res.data.IpfsHash}`;
     } catch (error) {
       console.error("Error uploading to IPFS:", error);
-      throw new Error("Failed to upload file");
+      toast.error("Failed to upload file");
     }
   };
 
@@ -74,6 +74,10 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
 
       const assetURI = await uploadToIPFS(formData.assetFile);
 
+      if (!window.ethereum) {
+        throw new Error("Ethereum provider not found. Please install MetaMask.");
+      }
+
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
@@ -81,15 +85,18 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
       const priceInWei = ethers.parseEther(formData.assetPrice);
 
       const transaction = await contract.listAsset(
+        user.id,
         formData.assetName,
         formData.assetDescription,
-        assetURI,
-        priceInWei
+        priceInWei,
+        assetURI 
       );
       await transaction.wait();
-      alert("Asset listed successfully!");
-    } catch (error) {
+      toast.success("Asset listed successfully!");
+      router.push("/assets/my-assets")
+    } catch (error: any) {
       console.error("Error listing asset:", error);
+      toast.error("Error listing asset on-chain"); // Show user-friendly error message
     }
 
     setIsSubmitting(false);
