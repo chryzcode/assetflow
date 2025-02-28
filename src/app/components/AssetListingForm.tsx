@@ -11,6 +11,10 @@ interface AssetListingFormProps {
   user?: { walletAddress?: string }; // Ensure the user object contains walletAddress
 }
 
+const API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY as string;
+const API_SECRET = process.env.NEXT_PUBLIC_PINATA_API_SECRET as string;
+console.log(API_KEY, API_KEY)
+
 const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -37,8 +41,7 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
   };
 
   const uploadToIPFS = async (file: File) => {
-    const API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY;
-    const API_SECRET = process.env.NEXT_PUBLIC_PINATA_API_SECRET;
+    
 
     const formData = new FormData();
     formData.append("file", file);
@@ -53,8 +56,8 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
       const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          pinata_api_key: API_KEY!,
-          pinata_secret_api_key: API_SECRET!,
+          pinata_api_key: API_KEY,
+          pinata_secret_api_key: API_SECRET,
         },
       });
 
@@ -68,30 +71,43 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+  
     try {
-      if (!formData.assetFile) throw new Error("No file selected!");
-
-      const assetURI = await uploadToIPFS(formData.assetFile);
-
+      // Step 1: Check if MetaMask (Ethereum provider) is available
+      if (!window.ethereum) {
+        throw new Error("Ethereum provider not found. Please install MetaMask.");
+      }
+  
+      // Step 2: Request wallet connection
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+  
+      // Step 3: Initialize provider and signer
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
+  
+      // Step 4: Only upload the file if MetaMask is installed and connected
+      if (!formData.assetFile) throw new Error("No file selected!");
+      
+      const assetURI = await uploadToIPFS(formData.assetFile);
+  
+      // Step 5: Proceed with contract interaction
       const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
-
       const priceInWei = ethers.parseEther(formData.assetPrice);
-
+  
       const transaction = await contract.listAsset(
         formData.assetName,
         formData.assetDescription,
         assetURI,
         priceInWei
       );
+  
       await transaction.wait();
       alert("Asset listed successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error listing asset:", error);
+      alert(error.message);
     }
-
+  
     setIsSubmitting(false);
   };
 

@@ -2,13 +2,13 @@
 
 import React, { createContext, useReducer, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
 import { validateToken } from "@/lib/auth";
 
 type AuthState = {
   isAuthenticated: boolean;
   user: any | null;
   token: string | null;
+  error: string | null;
 };
 
 type AuthAction =
@@ -20,6 +20,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   user: null,
   token: null,
+  error: null,
 };
 
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
@@ -29,16 +30,19 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isAuthenticated: true,
         user: action.payload.user,
         token: action.payload.token,
+        error: null,
       };
     case "LOGOUT":
       return {
         isAuthenticated: false,
         user: null,
         token: null,
+        error: null,
       };
     case "ERROR":
-      toast.error(action.payload);
-      return state;
+      return {
+        ...state,
+      };
     default:
       return state;
   }
@@ -80,6 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     initializeAuth();
   }, []);
+
 
   if (!isInitialized) {
     return <div className="flex justify-center items-center min-h-screen text-white">Loading...</div>;
