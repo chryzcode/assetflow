@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { ethers } from "ethers";
 import AssetMarketplace from "@/smartContract/artifacts/contracts/AssetMarketplace.sol/AssetMarketplace.json";
 import withAuth from "../../context/withAuth";
 import { useGetAuthUser } from "@/lib/useGetAuthUser";
 
 const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "";
-console.log('hi', contractAddress)
+const INFURA_PROJECT_ID = process.env.NEXT_PUBLIC_INFURA_PROJECT_ID;
+console.log(INFURA_PROJECT_ID);
 
 // Define the Asset type to prevent TypeScript errors
 type Asset = {
@@ -37,9 +39,19 @@ const ListAssetPage = () => {
         }
     }, [userId]);
 
+    const getIPFSUrl = (ipfsUrl: string) => {
+      if (ipfsUrl.startsWith("ipfs://")) {
+        return `https://ipfs.io/ipfs/${ipfsUrl.slice(7)}`;
+      }
+      return ipfsUrl;
+    };
+
+
     const fetchUserAssets = async (userId: string) => {
         try {
-            const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${process.env.INFURA_PROJECT_ID}`);
+            const provider = new ethers.JsonRpcProvider(
+              `https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`
+            );
             const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, provider);
 
             const userAssets = await contract.getUserAssets(userId);
@@ -62,21 +74,21 @@ const ListAssetPage = () => {
     };
 
     return (
-        <div>
-            <h1>Your Listed Assets</h1>
-            {assets.length > 0 ? (
-                assets.map((asset) => (
-                    <div key={asset.id} className="p-4 border border-gray-700 rounded">
-                        <h3>{asset.name}</h3>
-                        <p>{asset.description}</p>
-                        <p>Price: {ethers.formatEther(asset.price)} ETH</p> 
-                        <img src={asset.assetUrl} alt={asset.name} width="200" />
-                    </div>
-                ))
-            ) : (
-                <p>No assets listed yet.</p>
-            )}
-        </div>
+      <div>
+        <h1>Your Listed Assets</h1>
+        {assets.length > 0 ? (
+          assets.map(asset => (
+            <div key={asset.id} className="p-4 border border-gray-700 rounded">
+              <h3>{asset.name}</h3>
+              <p>{asset.description}</p>
+              <p>Price: {ethers.formatEther(asset.price)} ETH</p>
+              <Image src={getIPFSUrl(asset.assetUrl)} alt={asset.name} width={200} height={200} layout="intrinsic" />
+            </div>
+          ))
+        ) : (
+          <p>No assets listed yet.</p>
+        )}
+      </div>
     );
 };
 
