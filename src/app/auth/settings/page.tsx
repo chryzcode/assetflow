@@ -21,6 +21,7 @@ const EditProfile = () => {
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (user) {
@@ -31,6 +32,7 @@ const EditProfile = () => {
         confirmPassword: "",
       });
     }
+    
   }, [user]);
 
   if (!user) return <p>Loading...</p>; // Prevent rendering before data loads
@@ -57,14 +59,13 @@ const EditProfile = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(
-            {
-                fullName: formData.fullName,
-                email: formData.email,
-                password: formData.password,
-            }
-        ),
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+        }),
       });
 
       if (response.ok) {

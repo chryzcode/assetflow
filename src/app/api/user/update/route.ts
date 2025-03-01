@@ -4,56 +4,50 @@ import { collection, query, where, getDocs, updateDoc, doc, getDoc } from "fireb
 import authenticate from "@/middleware/authentication";
 import bcrypt from "bcryptjs";
 
-
 export async function PUT(req: NextRequest) {
-  const user = await authenticate(req);
-  if (user instanceof NextResponse) return user; // Stop if authentication fails
-
-
-  const userId = (user as any).id; // This is the ID from the user object
-  const { ...userData } = await req.json();
-
-
-  if (!userId) {
-    return NextResponse.json({ error: "User ID not found" }, { status: 400 });
-  }
-
   try {
-    // Fetch the correct document ID
+    const user: any = await authenticate(req);
+
+    if ("error" in user) return user; // ✅ If authentication fails, return the response
+
+    const userId = user.id; // ✅ Ensure the user ID is available
+    const userData = await req.json();
+
+    if (!userId) {
+      return NextResponse.json({ error: "User ID not found" }, { status: 400 });
+    }
+
+    // Query Firestore to get the user's document ID
     const usersRef = collection(db, "users");
-    const q = query(usersRef, where("id", "==", userId)); // Query for user by stored "id"
+    const q = query(usersRef, where("id", "==", userId));
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get the actual Firestore document ID
-    const userDoc = snapshot.docs[0]; // Get the first matching document
-    const firestoreId = userDoc.id; // Firestore's actual document ID
+    const userDoc = snapshot.docs[0];
+    const firestoreId = userDoc.id;
 
+    // Prevent updating `id` and `email`
+    delete userData.id;
+    delete userData.email;
 
-    //if password is being updated, hash it
+    // Hash password if being updated
     if (userData.password) {
       userData.password = await bcrypt.hash(userData.password, 10);
     }
 
-    //dont permit to update id and email
-    delete userData.id;
-    delete userData.email;
-
-    // Update the document
+    // Update Firestore document
     const userRef = doc(db, "users", firestoreId);
     await updateDoc(userRef, userData);
 
-
-    //return the updated user complete object
+    // Fetch updated user data
     const updatedUser = await getDoc(userRef);
+
     return NextResponse.json({ message: "User updated successfully", user: updatedUser.data() }, { status: 200 });
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+  } catch (error) {
+    console.error("Error updating user:", error);
     return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
   }
 }

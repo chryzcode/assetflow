@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract AssetMarketplace {
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
+contract AssetMarketplace is Initializable {
     struct Asset {
         uint256 id;
         string name;
@@ -11,7 +13,7 @@ contract AssetMarketplace {
         string userId;
         address payable currentWallet;
         bool isSold;
-        address creator; // Track the creator
+        address creator;
     }
 
     uint256 private assetCounter;
@@ -20,8 +22,12 @@ contract AssetMarketplace {
     mapping(address => uint256) public creatorEarnings;
 
     event AssetListed(uint256 id, string name, uint256 price, string userId);
-    event AssetPurchased(uint256 id, string userId, address wallet);
+    event AssetPurchased(uint256 id, string userId, address wallet, uint256 price);
     event CreatorEarnings(address indexed creator, uint256 amount);
+
+    function initialize() public initializer {
+        assetCounter = 0; // Initialize asset counter
+    }
 
     function listAsset(
         string memory _userId,
@@ -34,7 +40,7 @@ contract AssetMarketplace {
         require(bytes(_name).length > 0, "Name cannot be empty");
         require(bytes(_description).length > 0, "Description cannot be empty");
         require(bytes(_assetUrl).length > 0, "Asset URL cannot be empty");
-        
+
         assetCounter++;
         assets[assetCounter] = Asset(
             assetCounter,
@@ -43,7 +49,7 @@ contract AssetMarketplace {
             _price,
             _assetUrl,
             _userId,
-            payable(msg.sender), // Set initial owner to the creator
+            payable(msg.sender),
             false,
             msg.sender
         );
@@ -52,25 +58,25 @@ contract AssetMarketplace {
     }
 
     function purchaseAsset(uint256 _id, string memory _userId) public payable {
-    Asset storage asset = assets[_id];
-    require(!asset.isSold, "Asset already sold");
-    require(msg.value == asset.price, "Incorrect payment amount");
-    require(bytes(_userId).length > 0, "User ID cannot be empty");
+        Asset storage asset = assets[_id];
+        require(!asset.isSold, "Asset already sold");
+        require(msg.value == asset.price, "Incorrect payment amount");
+        require(bytes(_userId).length > 0, "User ID cannot be empty");
 
-    // Convert creator's address to payable before transferring funds
-    payable(asset.creator).transfer(msg.value);
+        // Transfer funds to creator
+        (bool success, ) = asset.creator.call{value: msg.value}("");
+        require(success, "Transfer failed");
 
-    creatorEarnings[asset.creator] += msg.value;
-    emit CreatorEarnings(asset.creator, msg.value);
+        creatorEarnings[asset.creator] += msg.value;
+        emit CreatorEarnings(asset.creator, msg.value);
 
-    // Update ownership details
-    asset.currentWallet = payable(msg.sender);
-    asset.isSold = true;
-    userAssets[_userId].push(_id);
+        // Update asset ownership
+        asset.currentWallet = payable(msg.sender);
+        asset.isSold = true;
+        userAssets[_userId].push(_id);
 
-    emit AssetPurchased(_id, _userId, msg.sender);
-}
-
+        emit AssetPurchased(_id, _userId, msg.sender, asset.price);
+    }
 
     function getAssetCounter() public view returns (uint256) {
         return assetCounter;

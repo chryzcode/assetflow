@@ -6,10 +6,10 @@ async function main() {
   await contract.waitForDeployment();
 
   const contractAddress = contract.target;
-  console.log(`✅ Contract deployed...`);
+  console.log(`✅ Contract deployed...${contractAddress}`);
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error(error);
   process.exitCode = 1;
 });
