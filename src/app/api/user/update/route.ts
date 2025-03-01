@@ -33,14 +33,19 @@ export async function PUT(req: NextRequest) {
     delete userData.id;
     delete userData.email;
 
-    // Hash password if being updated
-    if (userData.password) {
-      userData.password = await bcrypt.hash(userData.password, 10);
-    }
+    // Get current user data
+    const userRef = doc(db, "users", firestoreId);
+    const existingUserDoc = await getDoc(userRef);
+    const existingUser = existingUserDoc.data();
+
+    // Hash password if being updated, otherwise retain old password
+    const updatedData = {
+      ...userData,
+      password: userData.password ? await bcrypt.hash(userData.password, 10) : existingUser?.password,
+    };
 
     // Update Firestore document
-    const userRef = doc(db, "users", firestoreId);
-    await updateDoc(userRef, userData);
+    await updateDoc(userRef, updatedData);
 
     // Fetch updated user data
     const updatedUser = await getDoc(userRef);
