@@ -1,17 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   env: {
     JWT_SECRET: process.env.JWT_SECRET,
   },
   images: {
-    domains: ["ipfs.io"], // Allow IPFS images to load
+    domains: ["ipfs.io", "gateway.pinata.cloud"], // Allow IPFS images
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "ipfs.io",
-        pathname: "/ipfs/**",
+        hostname: "**.ipfs.io", // Supports ipfs.io and subdomains
+        pathname: "/**", // Allow all paths
+      },
+      {
+        protocol: "https",
+        hostname: "**.gateway.pinata.cloud", // Alternative IPFS gateway
+        pathname: "/**",
       },
     ],
   },
