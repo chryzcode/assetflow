@@ -147,9 +147,8 @@ const NavLinks = ({ onClick }: { onClick: () => void }) => (
   <>
     {[
       { name: "Dashboard", route: "/dashboard" },
-      { name: "List Asset", route: "/assets/list-asset" }, 
-      { name: "My Assets", route: "/assets/my-assets" },
-
+      { name: "Asset Marketplace", route: "/assets" },
+      { name: "List Asset", route: "/assets/list-asset" },
     ].map((item) => (
       <a
         key={item.name}
@@ -167,6 +166,15 @@ const NavLinks = ({ onClick }: { onClick: () => void }) => (
 // Dropdown Menu Component
 const DropdownMenu = ({ handleLogout }: { handleLogout: () => void }) => (
   <>
+   <button
+      className="block w-full text-left px-4 py-2 hover:border-b hover:border-blue-500 hover:cursor-pointer"
+      onClick={() => {
+        window.location.href = "/assets/my-assets";
+      }}
+    >
+      My Assets
+    </button>
+
     <button
       className="block w-full text-left px-4 py-2 hover:border-b hover:border-blue-500 hover:cursor-pointer"
       onClick={() => {

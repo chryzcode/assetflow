@@ -9,7 +9,7 @@ import { useGetAuthUser } from "@/lib/useGetAuthUser";
 
 const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "";
 const INFURA_PROJECT_ID = process.env.NEXT_PUBLIC_INFURA_PROJECT_ID;
-console.log(INFURA_PROJECT_ID);
+
 
 // Define the Asset type to prevent TypeScript errors
 type Asset = {
