@@ -41,8 +41,8 @@ const DashboardPage = () => {
   const getGreeting = (username: string) => {
     const hour = new Date().getHours();
     if (hour < 12) return `Good morning ${username}☀️`;
-    if (hour < 18) return "Good afternoon ${username}🌤️";
-    return "Good evening ${username}🌙";
+    if (hour < 18) return `Good afternoon ${username}🌤️`;
+    return `Good evening ${username}🌙`;
   };
 
   const maskWalletAddress = (wallet: string) => {
@@ -122,7 +122,8 @@ const DashboardPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg my-10">
-      <h1 className="text-3xl font-semibold">{getGreeting(user.fullName)},</h1>
+      <h1 className="text-2xl md:text-3xl font-semibold">
+      {getGreeting(user.fullName)},</h1>
       <p className="text-gray-400 my-4 font-semibold text-xl">Welcome back👋!</p>
 
       {/* Wallet Section */}
