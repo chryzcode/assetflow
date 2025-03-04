@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import Image from "next/image";
 import AssetMarketplace from "../../smartContract/artifacts/contracts/AssetMarketplace.sol/AssetMarketplace.json";
-import ipfsLoader from "@/lib/ipfsLoader"; // 
+import ipfsLoader from "@/lib/ipfsLoader";
 
 interface Asset {
   id: number;
@@ -35,7 +35,6 @@ const Marketplace = () => {
         const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`);
         const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, provider);
 
-        // Fetch asset count
         const assetCount = await contract.getAssetCounter();
         if (assetCount === 0) {
           setAssets([]);
@@ -106,27 +105,37 @@ const Marketplace = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Marketplace</h1>
+
       {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+
       {isLoading ? (
-        <p className="text-center text-gray-500">Loading assets...</p>
+        <p className="text-center text-gray-400">Loading assets...</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 my-10">
           {assets.map(asset => (
-            <div key={asset.id} className="border p-4 rounded-lg shadow-lg">
-              <Image
-                loader={ipfsLoader}
-                src={asset.assetUrl}
-                alt={asset.name}
-                width={200}
-                height={200}
-                layout="intrinsic"
-              />{" "}
-              <h2 className="text-xl font-semibold mt-2">{asset.name}</h2>
-              <p className="text-gray-600 text-sm">{asset.description}</p>
-              <p className="text-lg font-bold mt-2">{asset.price} ETH</p>
+            <div
+              key={asset.id}
+              className="bg-gray-900 p-4 rounded-xl shadow-lg hover:shadow-2xl transition transform hover:scale-105 relative overflow-hidden">
+              {/* Image Wrapper with No Download */}
+              <div className="relative w-full h-52 bg-gray-800 rounded-lg overflow-hidden">
+                <Image
+                  loader={ipfsLoader}
+                  src={asset.assetUrl}
+                  alt={asset.name}
+                  layout="fill"
+                  objectFit="cover"
+                  className="select-none pointer-events-none"
+                  draggable="false"
+                />
+              </div>
+
+              <h2 className="text-xl font-semibold mt-3 text-white">{asset.name}</h2>
+              <p className="text-lg font-bold mt-3 text-blue-400">{asset.price} ETH</p>
+
+              {/* Buy Button */}
               <button
-                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+                className={`mt-4 w-full text-white py-2 rounded-xl transition-all duration-300 
+                  ${asset.isSold ? "bg-gray-500 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
                 disabled={asset.isSold}
                 onClick={() => handleBuy(asset.id, asset.price)}>
                 {asset.isSold ? "Sold" : "Buy Now"}

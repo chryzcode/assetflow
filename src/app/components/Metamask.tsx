@@ -6,10 +6,11 @@ import { toast } from "react-toastify";
 
 interface MetamaskProps {
   userId: string;
+  userWalletAddress: string;
 }
 
-const Metamask: React.FC<MetamaskProps> = ({ userId }) => {
-  const [wallet, setWallet] = useState("");
+const Metamask: React.FC<MetamaskProps> = ({ userId, userWalletAddress }) => {
+  const [wallet, setWallet] = useState(userWalletAddress);
 
   const handleConnectWallet = async () => {
     try {
@@ -22,8 +23,8 @@ const Metamask: React.FC<MetamaskProps> = ({ userId }) => {
   };
 
   return (
-    <button onClick={handleConnectWallet}>
-      {wallet ? `Connected: ${wallet}` : "Connect MetaMask"}
+    <button onClick={handleConnectWallet} className="text-green-400 border-b-2 border-green-400 my-2">
+      {wallet ? "Change Wallet" : "Connect Wallet"}
     </button>
   );
 };

@@ -32,15 +32,22 @@ const DashboardPage = () => {
       value: string;
       timeStamp: string;
     }[]
-  >([]);
+    >([]);
+  
+ 
 
 
   // Determine greeting based on time
-  const getGreeting = () => {
+  const getGreeting = (username: string) => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good morning ☀️";
-    if (hour < 18) return "Good afternoon 🌤️";
-    return "Good evening 🌙";
+    if (hour < 12) return `Good morning ${username}☀️`;
+    if (hour < 18) return "Good afternoon ${username}🌤️";
+    return "Good evening ${username}🌙";
+  };
+
+  const maskWalletAddress = (wallet: string) => {
+    if (!wallet || wallet.length < 8) return wallet;
+    return `${wallet.slice(0, 5)}*********${wallet.slice(-5)}`;
   };
 
   // Fetch wallet balance (Memoized)
@@ -50,7 +57,7 @@ const DashboardPage = () => {
     try {
       const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`);
       const balance = await provider.getBalance(user.walletAddress);
-      setWalletBalance(ethers.formatEther(balance));
+      setWalletBalance(parseFloat(ethers.formatEther(balance)).toFixed(2)); // Round to 2 decimal places
     } catch (error) {
       console.error("Error fetching balance:", error);
       toast.error("Failed to fetch wallet balance.");
@@ -114,46 +121,45 @@ const DashboardPage = () => {
   if (!user) return <p>Loading...</p>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg">
-      <h1 className="text-2xl font-semibold">
-        {getGreeting()}, {user.fullName} 👋
-      </h1>
-      <p className="text-gray-400 mt-2">Welcome back to your dashboard!</p>
+    <div className="max-w-4xl mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg my-10">
+      <h1 className="text-3xl font-semibold">{getGreeting(user.fullName)},</h1>
+      <p className="text-gray-400 my-4 font-semibold text-xl">Welcome back👋!</p>
 
       {/* Wallet Section */}
       <div className="mt-6 p-4 bg-gray-800 rounded-lg">
-        <h2 className="text-lg font-medium">Wallet Information</h2>
-        <p className="text-gray-300">
+        <h2 className="text-lg font-semibold text-gray-400 mb-7">Wallet Information</h2>
+        <p className="">
           Wallet Address:{" "}
           {user.walletAddress ? (
-            <span className="text-green-400">{user.walletAddress}</span>
+            <span className="text-green-400">{maskWalletAddress(user.walletAddress)}</span>
           ) : (
             <span className="text-red-400">Not connected</span>
           )}
         </p>
-        <p className="text-lg font-bold mt-2">Balance: {walletBalance} ETH</p>
-        <Metamask userId={user.id} />
+        <p className="">Balance: {walletBalance} ETH</p>
+        <Metamask userId={user.id} userWalletAddress={user.walletAddress} />
       </div>
 
       {/* Assets Section */}
       <div className="mt-6 p-4 bg-gray-800 rounded-lg">
-        <h2 className="text-lg font-medium">Your Assets</h2>
+        <h2 className="text-lg font-semibold text-gray-400 mb-7">Your Assets Count</h2>
         {userAssets.length > 0 ? (
-          <ul className="mt-2">
-            {userAssets.map(asset => (
-              <li key={asset.id} className="border-b border-gray-700 py-2">
-                <span className="font-semibold">{asset.name}</span> - {asset.price} ETH
-              </li>
-            ))}
-          </ul>
+          userAssets.length
         ) : (
+          // <ul className="mt-2">
+          //   {userAssets.map(asset => (
+          //     <li key={asset.id} className="border-b border-gray-700 py-2">
+          //       <span className="font-semibold">{asset.name}</span> - {asset.price} ETH
+          //     </li>
+          //   ))}
+          // </ul>
           <p className="text-gray-400">You don't own any assets yet.</p>
         )}
       </div>
 
       {/* Transactions Section */}
       <div className="mt-6 p-4 bg-gray-800 rounded-lg">
-        <h2 className="text-lg font-medium">Recent Transactions</h2>
+        <h2 className="text-lg font-semibold text-gray-400 mb-7">Recent Transactions</h2>
         {transactions.length > 0 ? (
           <ul className="mt-2">
             {transactions.map(tx => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
@@ -13,37 +13,28 @@ const Navbar = () => {
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const router = useRouter();
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileDropdownRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const dropdownButton = document.getElementById("dropdown-button");
-      const dropdownMenu = document.getElementById("dropdown-menu");
-      const mobileDropdownButton = document.getElementById("mobile-dropdown-button");
-      const mobileDropdownMenu = document.getElementById("mobile-dropdown-menu");
-
-      if (
-        dropdownOpen &&
-        dropdownButton &&
-        dropdownMenu &&
-        !dropdownButton.contains(event.target as Node) &&
-        !dropdownMenu.contains(event.target as Node)
-      ) {
-        setDropdownOpen(false);
+      if (navRef.current && !navRef.current.contains(event.target as Node)) {
+        setIsOpen(false); // Close mobile menu
       }
 
-      if (
-        mobileDropdownOpen &&
-        mobileDropdownButton &&
-        mobileDropdownMenu &&
-        !mobileDropdownButton.contains(event.target as Node) &&
-        !mobileDropdownMenu.contains(event.target as Node)
-      ) {
-        setMobileDropdownOpen(false);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false); // Close desktop dropdown
+      }
+
+      if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(event.target as Node)) {
+        setMobileDropdownOpen(false); // Close mobile dropdown
       }
     };
 
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [dropdownOpen, mobileDropdownOpen]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
@@ -55,7 +46,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="relative flex justify-between items-center py-6 px-6 border-b border-blue-500">
+    <nav ref={navRef} className="relative flex justify-between items-center py-6 px-6 border-b border-blue-500">
       <div className="flex items-center space-x-2">
         <Link href="/">
           <p className="text-xl font-bold text-blue-500">ASSETFLOW</p>
@@ -68,73 +59,67 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center space-x-4 ml-auto">
-        {isAuthenticated && user && (
-          <div className="relative hidden md:block">
+        {isAuthenticated && user ? (
+          <div ref={dropdownRef} className="relative hidden md:block">
             <button
-              id="dropdown-button"
               className="flex items-center space-x-2 text-white font-bold"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-            >
+              onClick={() => setDropdownOpen(!dropdownOpen)}>
               <span>{user.id}</span>
               <span className="material-icons">arrow_drop_down</span>
             </button>
 
             {dropdownOpen && (
-              <div
-                id="dropdown-menu"
-                className="absolute right-0 mt-2 w-48 bg-background shadow-lg py-2 z-50"
-              >
+              <div className="absolute right-0 mt-2 w-48 bg-background shadow-lg py-2 z-50">
                 <DropdownMenu handleLogout={handleLogout} />
               </div>
             )}
           </div>
-        )}
-
-        {!isAuthenticated && (
+        ) : (
           <button
             className="hidden md:block bg-blue-500 px-4 py-2 text-white font-bold"
-            onClick={() => router.push("/auth/login")}
-          >
-            Login
+            onClick={() => {
+              setIsOpen(false);
+              router.push("/auth/register");
+            }}>
+            Register
           </button>
         )}
       </div>
 
       {/* Mobile Menu Button */}
-      <button
-        className="md:hidden text-white ml-auto pt-2"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span className="material-icons text-white text-3xl">
-          {isOpen ? "close" : "menu"}
-        </span>
+      <button className="md:hidden text-white ml-auto pt-2" onClick={() => setIsOpen(!isOpen)}>
+        <span className="material-icons text-white text-3xl">{isOpen ? "close" : "menu"}</span>
       </button>
 
       {/* Mobile Menu */}
       {isOpen && (
         <div className="absolute top-16 left-0 w-full bg-background mt-6 bg-opacity-10 py-6 flex flex-col items-center space-y-4 md:hidden z-50">
           <NavLinks onClick={() => setIsOpen(false)} />
-          
-          {isAuthenticated && user && (
-            <div className="relative w-full flex justify-end pr-6">
+
+          {isAuthenticated && user ? (
+            <div ref={mobileDropdownRef} className="relative w-full flex justify-end pr-6">
               <button
-                id="mobile-dropdown-button"
                 className="flex items-center space-x-2 text-white font-bold"
-                onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
-              >
+                onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}>
                 <span>{user.id}</span>
                 <span className="material-icons">arrow_drop_down</span>
               </button>
 
               {mobileDropdownOpen && (
-                <div
-                  id="mobile-dropdown-menu"
-                  className="absolute right-0 mt-6 w-48 bg-background shadow-lg py-2 z-50"
-                >
-                  <DropdownMenu handleLogout={handleLogout}  />
+                <div className="absolute right-0 mt-6 w-48 bg-background shadow-lg py-2 z-50">
+                  <DropdownMenu handleLogout={handleLogout} />
                 </div>
               )}
             </div>
+          ) : (
+            <button
+              className="block bg-blue-500 px-4 py-2 w-full text-white font-bold"
+              onClick={() => {
+                setIsOpen(false);
+                router.push("/auth/register");
+              }}>
+              Register
+            </button>
           )}
         </div>
       )}
@@ -149,29 +134,22 @@ const NavLinks = ({ onClick }: { onClick: () => void }) => (
       { name: "Dashboard", route: "/dashboard" },
       { name: "Asset Marketplace", route: "/assets" },
       { name: "List Asset", route: "/assets/list-asset" },
-    ].map((item) => (
-      <a
-        key={item.name}
-        href={item.route}
-        className="text-white hover:border-b-2 border-blue-900"
-        onClick={onClick}
-      >
+    ].map(item => (
+      <a key={item.name} href={item.route} className="text-white" onClick={onClick}>
         {item.name}
       </a>
     ))}
   </>
 );
 
-
 // Dropdown Menu Component
 const DropdownMenu = ({ handleLogout }: { handleLogout: () => void }) => (
   <>
-   <button
+    <button
       className="block w-full text-left px-4 py-2 hover:border-b hover:border-blue-500 hover:cursor-pointer"
       onClick={() => {
         window.location.href = "/assets/my-assets";
-      }}
-    >
+      }}>
       My Assets
     </button>
 
@@ -179,14 +157,12 @@ const DropdownMenu = ({ handleLogout }: { handleLogout: () => void }) => (
       className="block w-full text-left px-4 py-2 hover:border-b hover:border-blue-500 hover:cursor-pointer"
       onClick={() => {
         window.location.href = "/auth/settings";
-      }}
-    >
+      }}>
       Update Profile
     </button>
     <button
       className="block w-full text-left px-4 py-2 text-red-500 hover:border-b hover:border-blue-500 hover:text-white hover:cursor-pointer"
-      onClick={handleLogout}
-    >
+      onClick={handleLogout}>
       Logout
     </button>
   </>
