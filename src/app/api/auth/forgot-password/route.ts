@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     await updateDoc(userDoc.ref, { resetToken, resetExpires });
 
     // Send email with reset link
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const resetLink = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
     await sendEmail(
       email,
       "Password Reset Request",

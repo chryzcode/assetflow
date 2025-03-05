@@ -99,6 +99,10 @@ const Login = () => {
             Register
           </Link>
         </p>
+
+          <Link href="/auth/forgot-password" className="text-blue-500 font-bold hover:underline text-sm mt-4 text-center">
+         Forgot password?
+          </Link>
       </form>
     </div>
   );
