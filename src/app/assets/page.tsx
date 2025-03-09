@@ -5,6 +5,7 @@ import { ethers } from "ethers";
 import Image from "next/image";
 import AssetMarketplace from "../../smartContract/artifacts/contracts/AssetMarketplace.sol/AssetMarketplace.json";
 import ipfsLoader from "@/lib/ipfsLoader";
+import Link from "next/link";
 
 interface Asset {
     id: number;
@@ -148,7 +149,7 @@ const Marketplace = () => {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 my-10">
                     {assets.map(asset => (
-                        <div
+                        <Link  href={`/assets/${asset.id}`}
                             key={asset.id}
                             className="bg-gray-900 p-4 rounded-xl shadow-lg hover:shadow-2xl transition transform hover:scale-105 relative overflow-hidden"
                         >
@@ -173,7 +174,7 @@ const Marketplace = () => {
                             >
                                 {asset.isSold ? "Sold" : "Buy Now"}
                             </button>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             )}
