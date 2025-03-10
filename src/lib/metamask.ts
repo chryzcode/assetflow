@@ -16,21 +16,25 @@ export const connectMetaMask = async (userId: string) => {
 
   const provider = new ethers.BrowserProvider(window.ethereum);
   await provider.send("eth_requestAccounts", []);
+
   const signer = await provider.getSigner();
   const walletAddress = await signer.getAddress();
 
-  // Query Firestore to find the user by their `id` field
-  const usersRef = collection(db, "users");
-  const q = query(usersRef, where("id", "==", userId));
-  const snapshot = await getDocs(q);
+  // Listen for account changes and update Firestore if the wallet changes
+  window.ethereum.on("accountsChanged", async (accounts: string[]) => {
+    if (accounts.length === 0) return; // No account selected
+    const newWalletAddress = accounts[0];
 
-  if (snapshot.empty) {
-    throw new Error("User not found");
-  }
+    // Query Firestore to find the user by their `id`
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("id", "==", userId));
+    const snapshot = await getDocs(q);
 
-  // Get the first matching document and update the wallet address
-  const userDoc = snapshot.docs[0].ref;
-  await updateDoc(userDoc, { walletAddress });
+    if (!snapshot.empty) {
+      const userDoc = snapshot.docs[0].ref;
+      await updateDoc(userDoc, { walletAddress: newWalletAddress });
+    }
+  });
 
   return walletAddress;
 };

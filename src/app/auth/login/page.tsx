@@ -1,18 +1,32 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { dispatch } = useAuth();
+
+  useEffect(() => {
+    const verifiedStatus = searchParams.get("verified");
+
+    if (verifiedStatus) {
+      if (verifiedStatus === "success") {
+        toast.success("Account verified successfully! You can now log in.");
+      } else if (verifiedStatus === "failed") {
+        toast.error("Verification failed. Please try again.");
+      }
+
+      // Remove the query parameter from the URL after showing the toast
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -39,7 +53,6 @@ const Login = () => {
         throw new Error(data.error || "Login failed");
       }
 
-      // Store token securely (Consider using httpOnly cookies)
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify({ id: data.user.id }));
 
@@ -47,6 +60,7 @@ const Login = () => {
         type: "LOGIN",
         payload: { token: data.token, user: { id: data.user.id } },
       });
+
       router.push("/dashboard");
       toast.success("Login successful");
       setFormData({ email: "", password: "" });
@@ -100,9 +114,13 @@ const Login = () => {
           </Link>
         </p>
 
-          <Link href="/auth/forgot-password" className="text-blue-500 font-bold hover:underline text-sm mt-4 text-center">
-         Forgot password?
+        <p className="text-center mt-2">
+          <Link
+            href="/auth/forgot-password"
+            className="text-blue-500 font-bold hover:underline text-sm mt-4 text-center">
+            Forgot password?
           </Link>
+        </p>
       </form>
     </div>
   );

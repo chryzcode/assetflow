@@ -16,15 +16,16 @@ const Metamask: React.FC<MetamaskProps> = ({ userId, userWalletAddress }) => {
     try {
       const walletAddress = await connectMetaMask(userId);
       setWallet(walletAddress);
-      toast.success(`Connected: ${walletAddress}`);
+      toast.success(`Wallet updated: ${walletAddress}`);
     } catch (error: any) {
       toast.error(error.message);
     }
   };
 
+
   return (
     <button onClick={handleConnectWallet} className="text-green-400 border-b-2 border-green-400 my-2">
-      {wallet ? "Change Wallet" : "Connect Wallet"}
+      {wallet ? "Wallet Connected" : "Connect Wallet"}
     </button>
   );
 };
