@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import Link from "next/link";
-import Router from "next/router";
+import { useRouter } from "next/navigation";
 
 
 const Register = () => {
@@ -14,7 +14,7 @@ const Register = () => {
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
-  const router = Router;
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,6 +32,8 @@ const Register = () => {
       toast.error("Passwords do not match");
       return;
     }
+
+    setLoading(true); // Set loading state before making the request
 
     try {
       const response = await fetch("/api/auth/register", {
@@ -56,11 +58,12 @@ const Register = () => {
       });
       router.push("/auth/login");
     } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : "Registration failed"
-      );
+      toast.error(error instanceof Error ? error.message : "Registration failed");
+    } finally {
+      setLoading(false); // Ensure loading state is reset after request
     }
   };
+
 
   return (
     <div className="flex justify-center items-center min-h-screen">

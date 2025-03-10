@@ -6,6 +6,7 @@ import Image from "next/image";
 import AssetMarketplace from "../../smartContract/artifacts/contracts/AssetMarketplace.sol/AssetMarketplace.json";
 import ipfsLoader from "@/lib/ipfsLoader";
 import Link from "next/link";
+import { useGetAuthUser } from "@/lib/useGetAuthUser";
 
 interface Asset {
     id: number;
@@ -26,6 +27,7 @@ const Marketplace = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [blackout, setBlackout] = useState(false);
+    const user = useGetAuthUser();
 
     useEffect(() => {
         const fetchAssets = async () => {
@@ -80,7 +82,7 @@ const Marketplace = () => {
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
             const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
-            const userId = "example-user-id"; // Replace with actual user ID
+            const userId = user.id
             const tx = await contract.purchaseAsset(assetId, userId, {
                 value: ethers.parseEther(price),
             });
@@ -149,7 +151,7 @@ const Marketplace = () => {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 my-10">
                     {assets.map(asset => (
-                        <Link  href={`/assets/${asset.id}`}
+                        <Link href={`/assets/${asset.id}`}
                             key={asset.id}
                             className="bg-gray-900 p-4 rounded-xl shadow-lg hover:shadow-2xl transition transform hover:scale-105 relative overflow-hidden"
                         >
