@@ -6,6 +6,7 @@ import withAuth from "../context/withAuth";
 import { useGetAuthUser } from "@/lib/useGetAuthUser";
 import { ethers } from "ethers";
 import { toast } from "react-toastify";
+import { maskWalletAddress } from "@/lib/maskWalletAddress";
 import AssetMarketplace from "@/smartContract/artifacts/contracts/AssetMarketplace.sol/AssetMarketplace.json";
 
 const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "";
@@ -45,10 +46,6 @@ const DashboardPage = () => {
     return `Good evening ${username}🌙`;
   };
 
-  const maskWalletAddress = (wallet: string) => {
-    if (!wallet || wallet.length < 8) return wallet;
-    return `${wallet.slice(0, 5)}*********${wallet.slice(-5)}`;
-  };
 
   // Fetch wallet balance (Memoized)
   const fetchWalletBalance = useCallback(async () => {
