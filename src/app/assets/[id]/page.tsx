@@ -7,6 +7,7 @@ import Image from "next/image";
 import AssetMarketplace from "../../../smartContract/artifacts/contracts/AssetMarketplace.sol/AssetMarketplace.json";
 import ipfsLoader from "@/lib/ipfsLoader";
 import { toast } from "react-toastify";
+import { maskWalletAddress } from "@/lib/maskWalletAddress";
 
 interface Asset {
   id: number;
@@ -132,7 +133,7 @@ const AssetDetail = () => {
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-6 rounded-lg">
             <div>
               <p className="text-gray-500 text-sm">Owner</p>
-              <p className="text-gray-800">{asset.currentWallet}</p>
+              <p className="text-gray-800">{maskWalletAddress(asset.currentWallet)}</p>
             </div>
             <div>
               <p className="text-gray-500 text-sm">User ID</p>
