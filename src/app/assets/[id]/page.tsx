@@ -38,8 +38,14 @@ const AssetDetail = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`);
-        const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, provider);
+        const provider = new ethers.JsonRpcProvider(
+          `https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`
+        );
+        const contract = new ethers.Contract(
+          contractAddress,
+          AssetMarketplace.abi,
+          provider
+        );
         const assetData = await contract.assets(Number(id));
 
         setAsset({
@@ -63,6 +69,31 @@ const AssetDetail = () => {
     fetchAsset();
   }, [id]);
 
+
+  const handleListAsset = async () => {
+    if (!asset) return;
+    try {
+      if (!window.ethereum) {
+        toast.error("Ethereum provider not found. Please install MetaMask.");
+        return;
+      }
+  
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
+  
+      const tx = await contract.listAsset(asset.id, ethers.parseEther(asset.price));
+      toast.info("Listing asset...");
+      await tx.wait();
+      toast.success("Asset listed successfully!");
+    } catch (error: any) {
+      console.error("Error listing asset:", error);
+      toast.error(error?.message || "An unknown error occurred");
+    }
+  };
+
+  
+
   const handleBuy = async () => {
     if (!asset) return;
     if (!user) {
@@ -77,7 +108,11 @@ const AssetDetail = () => {
 
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
+      const contract = new ethers.Contract(
+        contractAddress,
+        AssetMarketplace.abi,
+        signer
+      );
       // Use user.id as the buyer's identifier
       const tx = await contract.purchaseAsset(asset.id, user.id, {
         value: ethers.parseEther(asset.price),
@@ -92,12 +127,16 @@ const AssetDetail = () => {
     }
   };
 
-  if (isLoading) return <p className="text-center text-gray-400">Loading asset...</p>;
-  if (error) return <p className="text-red-500 text-center">{error}</p>;
-  if (!asset) return <p className="text-gray-400 text-center">Asset not found.</p>;
+  if (isLoading)
+    return <p className="text-center text-gray-400">Loading asset...</p>;
+  if (error)
+    return <p className="text-red-500 text-center">{error}</p>;
+  if (!asset)
+    return <p className="text-gray-400 text-center">Asset not found.</p>;
 
   // Check if the authenticated user is the owner of the asset
   const isOwner = user && user.id === asset.userId;
+
 
   return (
     <div className="container mx-auto p-6 max-w-5xl">
@@ -130,17 +169,23 @@ const AssetDetail = () => {
         <div className="p-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <h1 className="text-3xl font-bold text-gray-900">{asset.name}</h1>
-            <p className="text-2xl font-semibold text-blue-600 mt-4 md:mt-0">{asset.price} ETH</p>
+            <p className="text-2xl font-semibold text-blue-600 mt-4 md:mt-0">
+              {asset.price} ETH
+            </p>
           </div>
           <hr className="my-4" />
 
-          <p className="text-gray-700 text-lg leading-relaxed">{asset.description}</p>
+          <p className="text-gray-700 text-lg leading-relaxed">
+            {asset.description}
+          </p>
 
           {/* Asset Info */}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-6 rounded-lg">
             <div>
               <p className="text-gray-500 text-sm">Owner</p>
-              <p className="text-gray-800">{maskWalletAddress(asset.currentWallet)}</p>
+              <p className="text-gray-800">
+                {maskWalletAddress(asset.currentWallet)}
+              </p>
             </div>
             <div>
               <p className="text-gray-500 text-sm">User ID</p>
@@ -149,10 +194,16 @@ const AssetDetail = () => {
           </div>
 
           {/* Action Button */}
+    
+
+          {/* Action Button */}
           <div className="mt-8">
             {isOwner ? (
-              <button className="w-full py-4 rounded-lg bg-gray-600 text-white font-bold cursor-default" disabled>
-                You Own This Asset
+              <button
+                className="w-full py-4 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 transition-all duration-300"
+                onClick={handleListAsset}
+              >
+                List Asset
               </button>
             ) : (
               <button
@@ -160,11 +211,13 @@ const AssetDetail = () => {
                   asset.isSold ? "bg-gray-500 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
                 }`}
                 disabled={asset.isSold}
-                onClick={handleBuy}>
+                onClick={handleBuy}
+              >
                 {asset.isSold ? "Sold Out" : "Buy Now"}
               </button>
             )}
           </div>
+
         </div>
       </div>
     </div>
