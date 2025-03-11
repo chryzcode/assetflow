@@ -43,21 +43,25 @@ const Marketplace = () => {
                     setIsLoading(false);
                     return;
                 }
-
+    
                 const assetList: Asset[] = [];
                 for (let i = 1; i <= assetCount; i++) {
                     try {
                         const asset = await contract.assets(i);
-                        assetList.push({
-                            id: i,
-                            name: asset.name,
-                            description: asset.description,
-                            price: ethers.formatEther(asset.price),
-                            assetUrl: asset.assetUrl,
-                            userId: asset.userId,
-                            currentWallet: asset.currentWallet,
-                            isSold: asset.isSold,
-                        });
+                        
+                        // Only add assets that are NOT sold
+                        if (!asset.isSold) {
+                            assetList.push({
+                                id: i,
+                                name: asset.name,
+                                description: asset.description,
+                                price: ethers.formatEther(asset.price),
+                                assetUrl: asset.assetUrl,
+                                userId: asset.userId,
+                                currentWallet: asset.currentWallet,
+                                isSold: asset.isSold,
+                            });
+                        }
                     } catch (err) {
                         console.warn(`Skipping missing asset ${i}:`, err);
                     }
@@ -72,6 +76,7 @@ const Marketplace = () => {
         };
         fetchAssets();
     }, []);
+    
 
     const handleBuy = async (assetId: number, price: string) => {
         try {
