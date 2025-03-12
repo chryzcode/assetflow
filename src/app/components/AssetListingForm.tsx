@@ -6,11 +6,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "";
-
 interface AssetListingFormProps {
   user?: { walletAddress?: string; id?: number }; // Ensure the user object contains walletAddress
 }
-
 const API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY as string;
 const API_SECRET = process.env.NEXT_PUBLIC_PINATA_API_SECRET as string;
 
@@ -42,13 +40,10 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
   const uploadToIPFS = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-
     const metadata = JSON.stringify({ name: file.name });
     formData.append("pinataMetadata", metadata);
-
     const options = JSON.stringify({ cidVersion: 0 });
     formData.append("pinataOptions", options);
-
     try {
       const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
         headers: {
@@ -57,22 +52,21 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
           pinata_secret_api_key: API_SECRET,
         },
       });
-
       return `ipfs://${res.data.IpfsHash}`;
     } catch (error) {
       console.error("Error uploading to IPFS:", error);
       toast.error("Failed to upload file");
+      return null;
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       if (!formData.assetFile) throw new Error("No file selected!");
-
       const assetURI = await uploadToIPFS(formData.assetFile);
+      if (!assetURI) throw new Error("IPFS upload failed");
 
       if (!window.ethereum) {
         throw new Error("Ethereum provider not found. Please install MetaMask.");
@@ -82,24 +76,28 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
 
-      const priceInWei = ethers.parseEther(formData.assetPrice);
+      // Ensure user.id is defined before proceeding
+      if (!user?.id) {
+        throw new Error("User ID is required for listing assets");
+      }
 
+      const priceInWei = ethers.parseEther(formData.assetPrice);
       const transaction = await contract.listAsset(
-        user.id,
+        user.id, // Owner's user ID
         formData.assetName,
         formData.assetDescription,
         priceInWei,
-        assetURI 
+        assetURI
       );
       await transaction.wait();
       toast.success("Asset listed successfully!");
-      router.push("/assets/my-assets")
+      router.push("/assets/my-assets");
     } catch (error: any) {
       console.error("Error listing asset:", error);
-      toast.error("Error listing asset on-chain"); // Show user-friendly error message
+      toast.error(error?.message || "Error listing asset on-chain");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   return (
