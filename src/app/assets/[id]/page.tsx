@@ -204,6 +204,51 @@ const AssetDetail = () => {
     }
   };
 
+  const handleDelistAsset = async () => {
+    if (!asset) return;
+    setButtonState(prev => ({
+      ...prev,
+      isListing: true,
+      listStatus: "Delisting...",
+    }));
+    try {
+      if (!window.ethereum) {
+        console.error("Error:", "Ethereum provider not found");
+        toast.error("Please install MetaMask to continue.");
+        setButtonState(prev => ({
+          ...prev,
+          isListing: false,
+          listStatus: "Delist Asset",
+        }));
+        return;
+      }
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
+
+      const tx = await contract.delistAsset(asset.id);
+      toast.info("Delisting asset...");
+      await tx.wait();
+
+      // Update local state, ensuring to return a complete Asset object
+      setAsset(prev => (prev ? { ...prev, isListed: false } : null));
+      toast.success("Asset delisted successfully!");
+      setButtonState(prev => ({
+        ...prev,
+        isListing: false,
+        listStatus: "Delist Asset",
+      }));
+    } catch (error: any) {
+      console.error("Error delisting asset:", error);
+      toast.error(error.message || "An unknown error occurred");
+      setButtonState(prev => ({
+        ...prev,
+        isListing: false,
+        listStatus: "Delist Asset",
+      }));
+    }
+  };
+
   if (isLoading) return <p className="text-center text-gray-400">Loading asset...</p>;
   if (error) return <p className="text-red-500 text-center">{error}</p>;
   if (!asset) return <p className="text-gray-400 text-center">Asset not found.</p>;
@@ -255,6 +300,17 @@ const AssetDetail = () => {
             </div>
           </div>
 
+          {isOwner && asset.isListed && (
+            <button
+              className={`w-full py-4 rounded-lg text-white font-bold transition-all duration-300 my-5 ${
+                buttonState.isListing ? "bg-gray-500 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"
+              }`}
+              onClick={handleDelistAsset}
+              disabled={buttonState.isListing}>
+              Delist Asset
+            </button>
+          )}
+
           {isOwner && !asset.isListed && (
             <div className="mt-4">
               <label className="block text-gray-700">
@@ -288,7 +344,7 @@ const AssetDetail = () => {
             </button>
           )}
 
-          {isOwner && asset.isSold && !asset.currentWallet.toLowerCase() === user.id.toLowerCase() && (
+          {isOwner && asset.isSold && !asset.userId.toLowerCase() === user.id.toLowerCase() && (
             <button className="w-full py-4 rounded-lg text-white font-bold bg-gray-500 cursor-not-allowed" disabled>
               Sold Out
             </button>

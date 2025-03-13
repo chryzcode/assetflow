@@ -113,15 +113,16 @@ contract AssetMarketplace is Initializable {
         return creatorEarnings[msg.sender];
     }
 
-    // New function to toggle listing status
-    function toggleListingStatus(uint256 _id) public {
-        Asset storage asset = assets[_id];
-        require(msg.sender == asset.creator, "Only creator can toggle listing status");
-        require(!asset.isSold, "Cannot toggle listing status for sold assets");
-        
-        asset.isListed = !asset.isListed;
-        emit AssetListStatusUpdated(_id, asset.isListed);
-    }
+   function delistAsset(uint256 _id) public {
+    Asset storage asset = assets[_id];
+
+    require(asset.isListed, "Asset is already delisted");
+    require(!asset.isSold, "Cannot delist a sold asset");
+
+    asset.isListed = false;
+    emit AssetListStatusUpdated(_id, false);
+}
+
 
     // New function to check if asset is listed
     function isAssetListed(uint256 _id) public view returns (bool) {
