@@ -85,12 +85,13 @@ const DashboardPage = () => {
      // Get all assets for the user
      const assets = await contract.getUserAssets(user.id);
 
-     // Sort by userId in descending order (newest first)
-     const sortedAssets = assets.sort((a: any, b: any) => b.userId - a.userId);
+     
+    
+    
 
      // Filter and map the assets
      setUserAssets(
-       sortedAssets.map((asset: any) => ({
+       assets.map((asset: any) => ({
          id: asset.id,
          name: asset.name,
          price: ethers.formatEther(asset.price),
