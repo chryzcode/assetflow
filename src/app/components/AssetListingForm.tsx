@@ -83,6 +83,7 @@ const AssetListingForm: React.FC<AssetListingFormProps> = ({ user }) => {
 
       const priceInWei = ethers.parseEther(formData.assetPrice);
       const transaction = await contract.listAsset(
+        0, //
         user.id, // Owner's user ID
         formData.assetName,
         formData.assetDescription,

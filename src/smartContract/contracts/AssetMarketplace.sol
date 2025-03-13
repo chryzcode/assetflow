@@ -31,17 +31,34 @@ contract AssetMarketplace is Initializable {
     }
 
     function listAsset(
-        string memory _userId,
-        string memory _name,
-        string memory _description,
-        uint256 _price,
-        string memory _assetUrl
-    ) public {
-        require(_price > 0, "Price must be greater than 0");
-        require(bytes(_name).length > 0, "Name cannot be empty");
-        require(bytes(_description).length > 0, "Description cannot be empty");
-        require(bytes(_assetUrl).length > 0, "Asset URL cannot be empty");
-        
+    uint256 _id,
+    string memory _userId,
+    string memory _name,
+    string memory _description,
+    uint256 _price,
+    string memory _assetUrl
+) public {
+    require(_price > 0, "Price must be greater than 0");
+    require(bytes(_name).length > 0, "Name cannot be empty");
+    require(bytes(_description).length > 0, "Description cannot be empty");
+    require(bytes(_assetUrl).length > 0, "Asset URL cannot be empty");
+
+    // Check if this is an existing asset
+    if (_id > 0 && _id <= assetCounter) {
+        Asset storage asset = assets[_id];
+        require(asset.creator == msg.sender, "Only the creator can update this asset");
+        require(!asset.isSold, "Cannot update a sold asset");
+
+        // Update the asset details
+        asset.name = _name;
+        asset.description = _description;
+        asset.price = _price;
+        asset.assetUrl = _assetUrl;
+        asset.isListed = true; // Ensure the asset is marked as listed
+
+        emit AssetListStatusUpdated(_id, true);
+    } else {
+        // If it's a new asset, create it
         assetCounter++;
         assets[assetCounter] = Asset(
             assetCounter,
@@ -52,12 +69,13 @@ contract AssetMarketplace is Initializable {
             _userId,
             payable(msg.sender),
             false,
-            true,  // Set isListed to true when creating
+            true,
             msg.sender
         );
         userAssets[_userId].push(assetCounter);
         emit AssetListed(assetCounter, _name, _price, _userId);
     }
+}
 
     function purchaseAsset(uint256 _id, string memory _userId) public payable {
     Asset storage asset = assets[_id];
