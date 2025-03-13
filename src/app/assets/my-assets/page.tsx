@@ -58,6 +58,7 @@ const ListAssetPage = () => {
         isSold: asset.isSold,
         isListed: asset.isListed,
       }));
+      console.log(formattedAssets);
       setAssets(formattedAssets);
     } catch (error) {
       console.error("Error fetching assets:", error);

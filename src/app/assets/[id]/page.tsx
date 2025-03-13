@@ -71,14 +71,15 @@ const AssetDetail = () => {
 
   const handleListAsset = async () => {
     if (!asset) return;
+
     setButtonState(prev => ({
       ...prev,
       isListing: true,
-      listStatus: "Listing...",
+      listStatus: "Updating...",
     }));
+
     try {
       if (!window.ethereum) {
-        console.error("Error:", "Ethereum provider not found");
         toast.error("Please install MetaMask to continue.");
         setButtonState(prev => ({
           ...prev,
@@ -87,23 +88,26 @@ const AssetDetail = () => {
         }));
         return;
       }
+
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
+
+      // Call the listAsset function with the asset's ID (or 0 if new)
       const tx = await contract.listAsset(
+        asset.id || 0, // Pass the asset ID if it exists, or 0 to create
         user.id,
         asset.name,
         asset.description,
         ethers.parseEther(newPrice || asset.price),
         asset.assetUrl
       );
-      setButtonState(prev => ({
-        ...prev,
-        listStatus: "Listing...",
-      }));
-      toast.info("Listing asset...");
+
+      toast.info("Updating asset...");
       await tx.wait();
-      toast.success("Asset listed successfully!");
+
+      setAsset(prev => (prev ? { ...prev, price: newPrice || prev.price, isListed: true } : null));
+      toast.success("Asset updated successfully!");
       setButtonState(prev => ({
         ...prev,
         isListing: false,
@@ -130,6 +134,7 @@ const AssetDetail = () => {
       }));
     }
   };
+
 
   const handleBuy = async () => {
     if (!asset) return;
