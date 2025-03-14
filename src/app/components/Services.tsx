@@ -1,5 +1,5 @@
 import Image from "next/image";
-//let all the image have same height and width  
+//let all the image have same height and width
 const services = [
   {
     title: "Blockchain-Powered Asset Management",
@@ -45,11 +45,22 @@ const services = [
     ],
     image: "/assets/undraw_crypto.svg",
   },
+  {
+    title: "Trading, Buying, and Selling of Assets",
+    description:
+      "Asset Flow enables seamless trading, buying, and selling of assets with blockchain-backed ownership verification. Users can list or delist assets, track price changes, and ensure secure transactions with smart contract integration.",
+    features: [
+      "Secure Asset Transactions",
+      "Ownership Change with Smart Contracts",
+      "Dynamic Pricing and Asset Listings",
+    ],
+    image: "/assets/undraw_trading.svg",
+  },
 ];
 
 const ServicesSection = () => {
   return (
-    <section className="container mx-auto px-6 py-5">
+    <section className="container mx-auto px-10 md:px-20 py-5">
       <h1 className="text-5xl font-bold text-center mb-16 text-blue-500">Our Services</h1>
 
       <div className="flex flex-col gap-20">
@@ -58,18 +69,16 @@ const ServicesSection = () => {
             key={index}
             className={`flex flex-col md:flex-row items-center ${
               index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-            } gap-10`}
-          >
+            } gap-10`}>
             {/* Image Section */}
-            <div className="md:w-1/2 py-10 ">
+            <div className="md:w-1/2 py-10 flex justify-center">
               <Image
                 src={service.image}
                 alt={service.title}
                 width={400}
                 height={400}
                 className="rounded-xl shadow-lg"
-                //animate bounce
-                style={{ animation: 'bounce 2s infinite' }}
+                style={{ animation: "bounce 2s infinite" }}
               />
             </div>
 
@@ -92,5 +101,6 @@ const ServicesSection = () => {
     </section>
   );
 };
+
 
 export default ServicesSection;
