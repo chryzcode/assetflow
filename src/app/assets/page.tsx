@@ -45,7 +45,7 @@ const Marketplace = () => {
         for (let i = 1; i <= assetCount; i++) {
           try {
             const asset = await contract.assets(i);
-            if (!asset.isSold && asset.isListed) {
+            if (asset.isListed) {
               assetList.push({
                 id: i,
                 name: asset.name,

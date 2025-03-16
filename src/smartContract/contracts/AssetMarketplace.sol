@@ -42,23 +42,28 @@ contract AssetMarketplace is Initializable {
     require(bytes(_name).length > 0, "Name cannot be empty");
     require(bytes(_description).length > 0, "Description cannot be empty");
     require(bytes(_assetUrl).length > 0, "Asset URL cannot be empty");
+    require(bytes(_userId).length > 0, "User ID cannot be empty");
 
-    // Check if this is an existing asset
     if (_id > 0 && _id <= assetCounter) {
         Asset storage asset = assets[_id];
-        require(asset.creator == msg.sender, "Only the creator can update this asset");
-        require(!asset.isSold, "Cannot update a sold asset");
 
+        // Compare the stored userId with the new _userId
+        require(
+            keccak256(abi.encodePacked(asset.userId)) == keccak256(abi.encodePacked(_userId)), 
+            "Only the creator can update this asset"
+        );
+
+       require(!(asset.isSold && asset.isListed), "Cannot update a sold and listed asset");
+       
         // Update the asset details
         asset.name = _name;
         asset.description = _description;
         asset.price = _price;
         asset.assetUrl = _assetUrl;
-        asset.isListed = true; // Ensure the asset is marked as listed
+        asset.isListed = true;
 
         emit AssetListStatusUpdated(_id, true);
     } else {
-        // If it's a new asset, create it
         assetCounter++;
         assets[assetCounter] = Asset(
             assetCounter,
@@ -76,6 +81,7 @@ contract AssetMarketplace is Initializable {
         emit AssetListed(assetCounter, _name, _price, _userId);
     }
 }
+
 
     function purchaseAsset(uint256 _id, string memory _userId) public payable {
     Asset storage asset = assets[_id];
@@ -135,7 +141,7 @@ contract AssetMarketplace is Initializable {
     Asset storage asset = assets[_id];
 
     require(asset.isListed, "Asset is already delisted");
-    require(!asset.isSold, "Cannot delist a sold asset");
+    require(!(asset.isSold && asset.isListed), "Cannot update a sold and listed asset");
 
     asset.isListed = false;
     emit AssetListStatusUpdated(_id, false);

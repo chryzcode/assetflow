@@ -75,7 +75,7 @@ const AssetDetail = () => {
     setButtonState(prev => ({
       ...prev,
       isListing: true,
-      listStatus: "Updating...",
+      listStatus: "Relisting...",
     }));
 
     try {
@@ -92,22 +92,25 @@ const AssetDetail = () => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(contractAddress, AssetMarketplace.abi, signer);
+      const priceToSet = newPrice && !isNaN(parseFloat(newPrice)) ? newPrice : asset.price;
+      
 
-      // Call the listAsset function with the asset's ID (or 0 if new)
+      // Call listAsset with existing ID to relist
       const tx = await contract.listAsset(
-        asset.id || 0, // Pass the asset ID if it exists, or 0 to create
+        asset.id, // Use the existing asset ID
         user.id,
         asset.name,
         asset.description,
-        ethers.parseEther(newPrice || asset.price),
+        ethers.parseEther(priceToSet),
         asset.assetUrl
       );
 
-      toast.info("Updating asset...");
+      toast.info("Relisting asset...");
       await tx.wait();
 
-      setAsset(prev => (prev ? { ...prev, price: newPrice || prev.price, isListed: true } : null));
-      toast.success("Asset updated successfully!");
+      setAsset(prev => (prev ? { ...prev, price: newPrice || prev.price, isListed: true, isSold: false } : null));
+      toast.success("Asset listed successfully!");
+
       setButtonState(prev => ({
         ...prev,
         isListing: false,
@@ -125,7 +128,6 @@ const AssetDetail = () => {
       } else if (error.message?.includes("invalid argument")) {
         errorMessage = "Invalid input. Please check your data.";
       }
-      console.error("Error message:", errorMessage);
       toast.error(errorMessage);
       setButtonState(prev => ({
         ...prev,
@@ -136,6 +138,7 @@ const AssetDetail = () => {
   };
 
 
+
   const handleBuy = async () => {
     if (!asset) return;
     if (!user) {
@@ -144,7 +147,7 @@ const AssetDetail = () => {
     }
 
     // Prevent owner from buying their own asset
-    if (user.id === asset.userId) {
+    if (user.id.toLowerCase() === asset.userId.toLowerCase()) {
       toast.error("You cannot purchase your own asset.");
       return;
     }
@@ -218,7 +221,6 @@ const AssetDetail = () => {
     }));
     try {
       if (!window.ethereum) {
-        console.error("Error:", "Ethereum provider not found");
         toast.error("Please install MetaMask to continue.");
         setButtonState(prev => ({
           ...prev,
@@ -235,14 +237,16 @@ const AssetDetail = () => {
       toast.info("Delisting asset...");
       await tx.wait();
 
-      // Update local state, ensuring to return a complete Asset object
       setAsset(prev => (prev ? { ...prev, isListed: false } : null));
-      toast.success("Asset delisted successfully!");
+
+      // Immediately update buttonState to show "List Asset"
       setButtonState(prev => ({
         ...prev,
         isListing: false,
-        listStatus: "Delist Asset",
+        listStatus: "List Asset", // Ensures button content updates instantly
       }));
+
+      toast.success("Asset delisted successfully!");
     } catch (error: any) {
       console.error("Error delisting asset:", error);
       toast.error(error.message || "An unknown error occurred");
@@ -253,6 +257,7 @@ const AssetDetail = () => {
       }));
     }
   };
+
 
   if (isLoading) return <p className="text-center text-gray-400">Loading asset...</p>;
   if (error) return <p className="text-red-500 text-center">{error}</p>;
@@ -278,7 +283,7 @@ const AssetDetail = () => {
           <div className="absolute top-4 left-4 bg-white rounded-md px-3 py-1 text-sm font-medium shadow-md">
             {isOwner && !asset.isListed ? (
               <span className="text-blue-500">Owned</span>
-            ) : asset.isSold ? (
+            ) : asset.isSold && !asset.isListed ? (
               <span className="text-red-500">Sold</span>
             ) : isOwner && asset.isListed ? (
               <span className="text-yellow-500">Listed</span>
@@ -349,7 +354,7 @@ const AssetDetail = () => {
             </button>
           )}
 
-          {isOwner && asset.isSold && !asset.userId.toLowerCase() === user.id.toLowerCase() && (
+         {isOwner && asset.isSold && asset.userId.toLowerCase() !== user.id.toLowerCase() && (
             <button className="w-full py-4 rounded-lg text-white font-bold bg-gray-500 cursor-not-allowed" disabled>
               Sold Out
             </button>

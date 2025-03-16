@@ -24,6 +24,7 @@ const DashboardPage = () => {
       assetUrl: string;
       owner: string;
       isSold: boolean;
+      isListed: boolean;
     }[]
   >([]);
   const [totalEarnings, setTotalEarnings] = useState<string>("0");
@@ -98,6 +99,7 @@ const DashboardPage = () => {
          owner: asset.userId,
          isSold: asset.isSold,
          currentOwner: asset.currentWallet,
+         isListed: asset.isListed,
        }))
      );
    } catch (error) {

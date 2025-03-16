@@ -74,7 +74,7 @@ const ListAssetPage = () => {
         case "owned":
           return asset.owner.toLowerCase() === userId.toLowerCase() && !asset.isListed ;
         case "listed":
-          return asset.isListed && asset.owner.toLowerCase() === userId.toLowerCase() && !asset.isSold;
+          return asset.isListed && asset.owner.toLowerCase() === userId.toLowerCase();
         default:
           return true;
       }
