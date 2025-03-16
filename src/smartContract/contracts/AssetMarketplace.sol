@@ -53,7 +53,7 @@ contract AssetMarketplace is Initializable {
             "Only the creator can update this asset"
         );
 
-       require(!(asset.isSold && asset.isListed), "Cannot update a sold and listed asset");
+       require(!(asset.isListed), "Cannot update a listed asset");
        
         // Update the asset details
         asset.name = _name;
@@ -83,14 +83,14 @@ contract AssetMarketplace is Initializable {
 }
 
 
-    function purchaseAsset(uint256 _id, string memory _userId) public payable {
+   function purchaseAsset(uint256 _id, string memory _userId) public payable {
     Asset storage asset = assets[_id];
-    require(!asset.isSold, "Asset already sold");
+    
+    require(asset.isListed, "Asset is not listed"); // Ensures only listed assets can be purchased
     require(msg.value == asset.price, "Incorrect payment amount");
     require(bytes(_userId).length > 0, "User ID cannot be empty");
-    require(asset.isListed, "Asset is not listed");
-
-    // Transfer funds to the creator
+    
+    
     (bool success, ) = asset.creator.call{value: msg.value}("");
     require(success, "Transfer failed");
     creatorEarnings[asset.creator] += msg.value;
@@ -139,9 +139,7 @@ contract AssetMarketplace is Initializable {
 
    function delistAsset(uint256 _id) public {
     Asset storage asset = assets[_id];
-
     require(asset.isListed, "Asset is already delisted");
-    require(!(asset.isSold && asset.isListed), "Cannot update a sold and listed asset");
 
     asset.isListed = false;
     emit AssetListStatusUpdated(_id, false);
