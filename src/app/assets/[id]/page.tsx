@@ -343,7 +343,7 @@ const AssetDetail = () => {
             </div>
           )}
 
-          {!isOwner && !asset.isSold && asset.isListed && (
+          {!isOwner && asset.isListed && (
             <button
               className={`w-full py-4 rounded-lg text-white font-bold transition-all duration-300 ${
                 buttonState.isPurchasing ? "bg-gray-500 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
